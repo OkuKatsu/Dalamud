@@ -158,7 +158,7 @@ internal class PluginRepository
             var official = pm.Repos.First();
             Debug.Assert(!official.IsThirdParty, "First repository should be official repository");
 
-            if (official.State == PluginRepositoryState.Success && this.IsThirdParty)
+            if (this.IsThirdParty)
             {
                 pluginMaster = pluginMaster.Where(thisRepoEntry =>
                 {
@@ -175,12 +175,6 @@ internal class PluginRepository
 
                     return true;
                 }).ToList();
-            }
-            else if (this.IsThirdParty)
-            {
-                Log.Warning("Official repository not loaded - couldn't check for overrides!");
-                this.State = PluginRepositoryState.Fail;
-                return;
             }
 
             this.PluginMaster = pluginMaster.Where(this.IsValidManifest).ToList().AsReadOnly();
