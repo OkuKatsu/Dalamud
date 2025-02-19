@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using CheapLoc;
+
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
@@ -25,9 +26,9 @@ namespace Dalamud.Game;
 /// Chat events and public helper functions.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal class ChatHandlers : IServiceType
+internal partial class ChatHandlers : IServiceType
 {
-    private static readonly ModuleLog Log = new("CHATHANDLER");
+    private static readonly ModuleLog Log = new("ChatHandlers");
 
     private readonly Regex rmtRegex = new(
             @"没打开的[\dwW,]+收|登录领取.*福袋",
@@ -79,7 +80,7 @@ internal class ChatHandlers : IServiceType
 
     [ServiceManager.ServiceDependency]
     private readonly Dalamud dalamud = Service<Dalamud>.Get();
-    
+
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
@@ -92,7 +93,6 @@ internal class ChatHandlers : IServiceType
     {
         chatGui.CheckMessageHandled += this.OnCheckMessageHandled;
         chatGui.ChatMessage += this.OnChatMessage;
-        Service<ClientState.ClientState>.Get().Logout += () => { this.hasSendMeasurement = false; };
     }
 
     /// <summary>
@@ -105,6 +105,9 @@ internal class ChatHandlers : IServiceType
     /// </summary>
     public bool IsAutoUpdateComplete { get; private set; }
 
+    [GeneratedRegex(@"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?", RegexOptions.Compiled)]
+    private static partial Regex CompiledUrlRegex();
+
     private void OnCheckMessageHandled(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
     {
         var textVal = message.TextValue;
@@ -113,7 +116,7 @@ internal class ChatHandlers : IServiceType
             this.configuration.BadWords.Any(x => !string.IsNullOrEmpty(x) && textVal.Contains(x)))
         {
             // This seems to be in the user block list - let's not show it
-            Log.Debug("Blocklist triggered");
+            Log.Debug("Filtered a message that contained a muted word");
             isHandled = true;
             return;
         }
@@ -141,56 +144,27 @@ internal class ChatHandlers : IServiceType
             ulong aid = 0;
             unsafe
             {
-                var character = (Character*)clientState.LocalPlayer.Address; 
+                var character = (Character*)clientState.LocalPlayer.Address;
                 aid = character->AccountId;
             }
+
             Task.Run(async () => await EventTracking.SendMeasurement(
                                      clientState.LocalContentId,
                                      clientState.LocalPlayer.EntityId,
-                                     clientState.LocalPlayer.HomeWorld.Id, 
+                                     clientState.LocalPlayer.HomeWorld.RowId,
                                      aid));
             this.hasSendMeasurement = true;
+            Service<ClientState.ClientState>.Get().Logout += (_, _) => { this.hasSendMeasurement = false; };
         }
 #if !DEBUG && false
             if (!this.hasSeenLoadingMsg)
                 return;
 #endif
 
-        if (type == XivChatType.RetainerSale)
-        {
-            foreach (var regex in this.retainerSaleRegexes[(ClientLanguage)this.dalamud.StartInfo.Language])
-            {
-                var matchInfo = regex.Match(message.TextValue);
-
-                // we no longer really need to do/validate the item matching since we read the id from the byte array
-                // but we'd be checking the main match anyway
-                var itemInfo = matchInfo.Groups["item"];
-                if (!itemInfo.Success)
-                    continue;
-
-                var itemLink = message.Payloads.FirstOrDefault(x => x.Type == PayloadType.Item) as ItemPayload;
-                if (itemLink == default)
-                {
-                    Log.Error("itemLink was null. Msg: {0}", BitConverter.ToString(message.Encode()));
-                    break;
-                }
-
-                Log.Debug($"Probable retainer sale: {message}, decoded item {itemLink.Item.RowId}, HQ {itemLink.IsHQ}");
-
-                var valueInfo = matchInfo.Groups["value"];
-                // not sure if using a culture here would work correctly, so just strip symbols instead
-                if (!valueInfo.Success || !int.TryParse(valueInfo.Value.Replace(",", string.Empty).Replace(".", string.Empty), out var itemValue))
-                    continue;
-
-                // Task.Run(() => this.dalamud.BotManager.ProcessRetainerSale(itemLink.Item.RowId, itemValue, itemLink.IsHQ));
-                break;
-            }
-        }
-
         var messageCopy = message;
         var senderCopy = sender;
 
-        var linkMatch = this.urlRegex.Match(message.TextValue);
+        var linkMatch = CompiledUrlRegex().Match(message.TextValue);
         if (linkMatch.Value.Length > 0)
             this.LastLink = linkMatch.Value;
     }
