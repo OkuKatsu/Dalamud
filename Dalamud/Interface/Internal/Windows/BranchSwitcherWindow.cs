@@ -21,9 +21,9 @@ namespace Dalamud.Interface.Internal.Windows;
 /// </summary>
 public class BranchSwitcherWindow : Window
 {
-    private const string BranchInfoUrl = "https://aonyx.ffxiv.wang/Dalamud/Release/Meta";
+    private const string BranchInfoUrl = "https://kamori.goats.dev/Dalamud/Release/Meta";
 
-    private Dictionary<string, VersionEntry>? branches;
+    private Dictionary<string, VersionEntry> branches = [];
     private int selectedBranchIndex;
 
     /// <summary>
@@ -60,12 +60,6 @@ public class BranchSwitcherWindow : Window
     /// <inheritdoc/>
     public override void Draw()
     {
-        if (this.branches == null)
-        {
-            ImGui.TextColored(ImGuiColors.DalamudGrey, "Loading branches...");
-            return;
-        }
-
         var si = Service<Dalamud>.Get().StartInfo;
 
         var itemsArray = this.branches.Select(x => x.Key).ToArray();
@@ -73,48 +67,41 @@ public class BranchSwitcherWindow : Window
 
         var pickedBranch = this.branches.ElementAt(this.selectedBranchIndex);
 
-        if (pickedBranch.Value.SupportedGameVer != si.GameVersion)
+        ImGui.Text($"Version: {pickedBranch.Value.AssemblyVersion} ({pickedBranch.Value.GitSha ?? "unk"})");
+        ImGui.Text($"Runtime: {pickedBranch.Value.RuntimeVersion}");
+
+        ImGuiHelpers.ScaledDummy(5);
+
+        void Pick()
         {
-            ImGui.TextColored(ImGuiColors.DalamudRed, "Can't pick this branch. GameVer != SupportedGameVer.");
+            var config = Service<DalamudConfiguration>.Get();
+            config.DalamudBetaKind = pickedBranch.Key;
+            config.DalamudBetaKey = pickedBranch.Value.Key;
+            config.QueueSave();
         }
-        else
+
+        if (ImGui.Button("Pick"))
         {
-            ImGui.Text($"Version: {pickedBranch.Value.AssemblyVersion} ({pickedBranch.Value.GitSha ?? "unk"})");
-            ImGui.Text($"Runtime: {pickedBranch.Value.RuntimeVersion}");
+            Pick();
+            this.IsOpen = false;
+        }
 
-            ImGuiHelpers.ScaledDummy(5);
+        ImGui.SameLine();
 
-            void Pick()
+        if (ImGui.Button("Pick & Restart"))
+        {
+            Pick();
+
+            // If we exit immediately, we need to write out the new config now
+            Service<DalamudConfiguration>.Get().ForceSave();
+
+            var appData = Service<Dalamud>.Get().StartInfo.LauncherDirectory ?? string.Empty;
+            var xlPath = Path.Combine(appData, "XIVLauncherCN.exe");
+
+            if (File.Exists(xlPath))
             {
-                var config = Service<DalamudConfiguration>.Get();
-                config.DalamudBetaKind = pickedBranch.Key;
-                //config.DalamudBetaKey = pickedBranch.Value.Key;
-                config.QueueSave();
-            }
-
-            if (ImGui.Button("Pick"))
-            {
-                Pick();
-                this.IsOpen = false;
-            }
-
-            ImGui.SameLine();
-
-            if (ImGui.Button("Pick & Restart"))
-            {
-                Pick();
-
-                // If we exit immediately, we need to write out the new config now
-                Service<DalamudConfiguration>.Get().ForceSave();
-
-                var appData = Service<Dalamud>.Get().StartInfo.LauncherDirectory ?? string.Empty;
-                var xlPath = Path.Combine(appData, "XIVLauncherCN.exe");
-
-                if (File.Exists(xlPath))
-                {
-                    Process.Start(xlPath);
-                    Environment.Exit(0);
-                }
+                Process.Start(xlPath);
+                Environment.Exit(0);
             }
         }
     }

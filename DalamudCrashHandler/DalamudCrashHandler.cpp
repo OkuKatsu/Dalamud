@@ -120,7 +120,7 @@ std::wstring describe_module(const std::filesystem::path& path) {
         return std::format(L"<error: GetFileVersionInfoSizeW#2 returned {}>", GetLastError());
 
     UINT size = 0;
-    
+
     std::wstring version = L"v?.?.?.?";
     if (LPVOID lpBuffer; VerQueryValueW(block.data(), L"\\", &lpBuffer, &size)) {
         const auto& v = *static_cast<const VS_FIXEDFILEINFO*>(lpBuffer);
@@ -177,7 +177,7 @@ const std::map<HMODULE, size_t>& get_remote_modules() {
         std::vector<HMODULE> buf(8192);
         for (size_t i = 0; i < 64; i++) {
             if (DWORD needed; !EnumProcessModules(g_hProcess, &buf[0], static_cast<DWORD>(std::span(buf).size_bytes()), &needed)) {
-                std::cerr << std::format("EnumProcessModules error: 0x{:x}", GetLastError()) << std::endl; 
+                std::cerr << std::format("EnumProcessModules error: 0x{:x}", GetLastError()) << std::endl;
                 break;
             } else if (needed > std::span(buf).size_bytes()) {
                 buf.resize(needed / sizeof(HMODULE) + 16);
@@ -202,7 +202,7 @@ const std::map<HMODULE, size_t>& get_remote_modules() {
 
             data[hModule] = nth64.OptionalHeader.SizeOfImage;
         }
-        
+
         return data;
     }();
 
@@ -411,7 +411,7 @@ void print_exception_info_extended(const EXCEPTION_POINTERS& ex, const CONTEXT& 
 
 std::wstring escape_shell_arg(const std::wstring& arg) {
     // https://docs.microsoft.com/en-us/archive/blogs/twistylittlepassagesallalike/everyone-quotes-command-line-arguments-the-wrong-way
-    
+
     std::wstring res;
     if (!arg.empty() && arg.find_first_of(L" \t\n\v\"") == std::wstring::npos) {
         res.append(arg);
@@ -503,7 +503,7 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
         filePath.emplace(pFilePath);
 
         std::fstream fileStream(*filePath, std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
-        
+
         mz_zip_archive zipa{};
         zipa.m_pIO_opaque = &fileStream;
         zipa.m_pRead = [](void* pOpaque, mz_uint64 file_ofs, void* pBuf, size_t n) -> size_t {
@@ -565,7 +565,7 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
             const auto hLogFile = CreateFileW(logFilePath.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
             if (hLogFile == INVALID_HANDLE_VALUE)
                 throw_last_error(std::format("indiv. log file: CreateFileW({})", ws_to_u8(logFilePath.wstring())));
-            
+
             std::unique_ptr<void, decltype(&CloseHandle)> hLogFileClose(hLogFile, &CloseHandle);
 
             LARGE_INTEGER size, baseOffset{};
@@ -694,7 +694,7 @@ int main() {
 
     // IFileSaveDialog only works on STA
     CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
-    
+
     std::vector<std::wstring> args;
     if (int argc = 0; const auto argv = CommandLineToArgvW(GetCommandLineW(), &argc)) {
         for (auto i = 0; i < argc; i++)
@@ -822,14 +822,14 @@ int main() {
                 hr = pOleWindow->GetWindow(&hwndProgressDialog);
                 if (SUCCEEDED(hr))
                 {
-                    SetWindowPos(hwndProgressDialog, HWND_TOPMOST, 0, 0, 0, 0, 
+                    SetWindowPos(hwndProgressDialog, HWND_TOPMOST, 0, 0, 0, 0,
                         SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
                     SetForegroundWindow(hwndProgressDialog);
                 }
-                
+
                 pOleWindow->Release();
             }
-        
+
         }
         else {
             std::cerr << "Failed to create progress window" << std::endl;
@@ -851,14 +851,14 @@ int main() {
 
         https://github.com/sumatrapdfreader/sumatrapdf/blob/master/src/utils/DbgHelpDyn.cpp
         */
-        
+
         if (g_bSymbolsAvailable) {
             SymRefreshModuleList(g_hProcess);
         }
         else if(!assetDir.empty())
         {
             auto symbol_search_path = std::format(L".;{}", (assetDir / "UIRes" / "pdb").wstring());
-            
+
             g_bSymbolsAvailable = SymInitializeW(g_hProcess, symbol_search_path.c_str(), true);
             std::wcout << std::format(L"Init symbols with PDB at {}", symbol_search_path) << std::endl;
 
@@ -869,12 +869,12 @@ int main() {
             g_bSymbolsAvailable = SymInitializeW(g_hProcess, nullptr, true);
             std::cout << "Init symbols without PDB" << std::endl;
         }
-        
+
         if (!g_bSymbolsAvailable) {
             std::wcerr << std::format(L"SymInitialize error: 0x{:x}", GetLastError()) << std::endl;
         }
 
-        if (pProgressDialog) 
+        if (pProgressDialog)
             pProgressDialog->SetLine(3, L"Reading troubleshooting data", FALSE, NULL);
 
         std::wstring stackTrace(exinfo.dwStackTraceLength, L'\0');
@@ -935,7 +935,7 @@ int main() {
 
         if (shutup)
             log << L"======= Crash handler was globally muted(shutdown?) =======" << std::endl;
-        
+
         if (dumpPath.empty())
             log << L"Dump skipped" << std::endl;
         else if (dumpError.empty())
@@ -953,42 +953,6 @@ int main() {
         const auto window_log_str = log.str();
         print_exception_info_extended(exinfo.ExceptionPointers, exinfo.ContextRecord, log);
         std::wofstream(logPath) << log.str();
-
-        std::thread submitThread;
-        if (!getenv("DALAMUD_NO_METRIC")) {
-            auto url = std::format(L"/Dalamud/Metric/ReportCrash?lt={}&code={:x}", exinfo.nLifetime, exinfo.ExceptionRecord.ExceptionCode);
-
-            submitThread = std::thread([url = std::move(url)] {
-                const auto hInternet = WinHttpOpen(L"DALAMUDCRASHHANDLER", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY, nullptr, nullptr, WINHTTP_FLAG_SECURE_DEFAULTS);
-                const auto hConnect = !hInternet ? nullptr : WinHttpConnect(hInternet, L"aonyx.ffxiv.wang", INTERNET_DEFAULT_HTTPS_PORT, 0);
-                const auto hRequest = !hConnect ? nullptr : WinHttpOpenRequest(hConnect, L"GET", url.c_str(), nullptr, nullptr, nullptr, 0);
-                const auto bSent = !hRequest ? false : WinHttpSendRequest(hRequest,
-                    WINHTTP_NO_ADDITIONAL_HEADERS,
-                    0, WINHTTP_NO_REQUEST_DATA, 0,
-                    0, 0);
-
-                if (!bSent)
-                    std::cerr << std::format("Failed to send metric: 0x{:x}", GetLastError()) << std::endl;
-
-                if (WinHttpReceiveResponse(hRequest, nullptr))
-                {
-                    DWORD dwStatusCode = 0;
-                    DWORD dwStatusCodeSize = sizeof(DWORD);
-
-                    WinHttpQueryHeaders(hRequest,
-                                        WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
-                                        WINHTTP_HEADER_NAME_BY_INDEX,
-                                        &dwStatusCode, &dwStatusCodeSize, WINHTTP_NO_HEADER_INDEX);
-
-                    if (dwStatusCode != 200)
-                        std::cerr << std::format("Failed to send metric: {}", dwStatusCode) << std::endl;
-                }
-                
-                if (hRequest) WinHttpCloseHandle(hRequest);
-                if (hConnect) WinHttpCloseHandle(hConnect);
-                if (hInternet) WinHttpCloseHandle(hInternet);
-            });
-        }
 
         TASKDIALOGCONFIG config = { 0 };
 
@@ -1038,7 +1002,7 @@ int main() {
             R"aa(<a href="help">Help</a> | <a href="logdir">Open log directory</a> | <a href="logfile">Open log file</a>)aa"
         );
 #endif
-        
+
         // Can't do this, xiv stops pumping messages here
         //config.hwndParent = FindWindowA("FFXIVGAME", NULL);
 
@@ -1091,13 +1055,13 @@ int main() {
             return (*reinterpret_cast<decltype(callback)*>(dwRefData))(hwnd, uNotification, wParam, lParam);
         };
         config.lpCallbackData = reinterpret_cast<LONG_PTR>(&callback);
-        
+
         if (pProgressDialog) {
             pProgressDialog->StopProgressDialog();
             pProgressDialog->Release();
             pProgressDialog = NULL;
         }
-        
+
         const auto kill_game = [&] { TerminateProcess(g_hProcess, exinfo.ExceptionRecord.ExceptionCode); };
 
         if (shutup) {

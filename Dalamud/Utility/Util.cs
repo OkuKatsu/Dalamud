@@ -47,7 +47,6 @@ namespace Dalamud.Utility;
 /// </summary>
 public static class Util
 {
-    internal static string TOSRemoteUrl = "https://aonyx.ffxiv.wang/Dalamud/ToS";
     private static readonly string[] PageProtectionFlagNames = [
         "PAGE_NOACCESS",
         "PAGE_READONLY",
@@ -467,7 +466,7 @@ public static class Util
 
         return text;
     }
-    
+
     /// <summary>
     /// Compress a string using GZip.
     /// </summary>
@@ -557,7 +556,7 @@ public static class Util
 
         return IsWine() ? OSPlatform.Linux : OSPlatform.Windows;
     }
-    
+
     /// <summary>
     /// Heuristically determine if the Windows version is higher than Windows 11's first build.
     /// </summary>
@@ -1268,22 +1267,5 @@ public static class Util
                 }
             }
         }
-    }
-
-    internal static async Task<string> GetRemoteTOSHash()
-    {
-        var httpClient = Service<HappyHttpClient>.Get().SharedHttpClient;
-        var response = await httpClient.GetStringAsync($"{TOSRemoteUrl}?tosHash=true");
-        var tosResponse = JsonConvert.DeserializeObject<TosResponse>(response);
-        return tosResponse.tosHash;
-    }
-
-    private class TosResponse
-    {
-        [JsonProperty("message")]
-        public string? message { get; set; }
-
-        [JsonProperty("tosHash")]
-        public string? tosHash { get; set; }
     }
 }

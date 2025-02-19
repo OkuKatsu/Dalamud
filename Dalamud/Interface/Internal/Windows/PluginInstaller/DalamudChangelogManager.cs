@@ -16,9 +16,6 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
 /// </summary>
 internal class DalamudChangelogManager
 {
-    private const string DalamudChangelogUrl = "https://aonyx.ffxiv.wang/Plugin/CoreChangelog";
-    private const string PluginChangelogUrl = "https://aonyx.ffxiv.wang/Plugin/History/{0}?track={1}";
-
     private readonly PluginManager manager;
 
     /// <summary>
@@ -41,43 +38,7 @@ internal class DalamudChangelogManager
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task ReloadChangelogAsync()
     {
-        var client = Service<HappyHttpClient>.Get().SharedHttpClient;
-        this.Changelogs = null;
-
-        var dalamudChangelogs = await client.GetFromJsonAsync<List<DalamudChangelog>>(DalamudChangelogUrl);
-        var changelogs = dalamudChangelogs.Select(x => new DalamudChangelogEntry(x)).Cast<IChangelogEntry>().ToList();
-
-        foreach (var plugin in this.manager.InstalledPlugins)
-        {
-            if (!plugin.IsThirdParty && !plugin.IsDev)
-            {
-                try
-                {
-                    var pluginChangelogs = await client.GetFromJsonAsync<PluginHistory>(string.Format(
-                                               PluginChangelogUrl,
-                                               plugin.Manifest.InternalName,
-                                               plugin.Manifest.Dip17Channel));
-
-                    changelogs.AddRange(pluginChangelogs.Versions
-                                                                   .Where(x => x.Dip17Track ==
-                                                                               plugin.Manifest.Dip17Channel)
-                                                                   .Select(x => new PluginChangelogEntry(plugin, x)));
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Failed to load changelog for {PluginName}", plugin.Manifest.Name);
-                }
-            }
-            else
-            {
-                if (plugin.Manifest.Changelog.IsNullOrWhitespace())
-                    continue;
-
-                changelogs.Add(new PluginChangelogEntry(plugin));
-            }
-        }
-
-        this.Changelogs = changelogs.OrderByDescending(x => x.Date).ToList();
+        this.Changelogs = [];
     }
 
     /// <summary>
