@@ -158,25 +158,6 @@ internal class PluginRepository
             var official = pm.Repos.First();
             Debug.Assert(!official.IsThirdParty, "First repository should be official repository");
 
-            if (this.IsThirdParty)
-            {
-                pluginMaster = pluginMaster.Where(thisRepoEntry =>
-                {
-                    if (official.PluginMaster!.Any(officialRepoEntry =>
-                                                       string.Equals(thisRepoEntry.InternalName, officialRepoEntry.InternalName, StringComparison.InvariantCultureIgnoreCase)))
-                    {
-                        Log.Warning(
-                            "The repository {RepoName} tried to replace the plugin {PluginName}, which is already installed through the official repo - this is no longer allowed for security reasons. " +
-                            "Please reach out if you have an use case for this.",
-                            this.PluginMasterUrl,
-                            thisRepoEntry.InternalName);
-                        return false;
-                    }
-
-                    return true;
-                }).ToList();
-            }
-
             this.PluginMaster = pluginMaster.Where(this.IsValidManifest).ToList().AsReadOnly();
 
             // API9 HACK: Force IsHide to false, we should remove that
