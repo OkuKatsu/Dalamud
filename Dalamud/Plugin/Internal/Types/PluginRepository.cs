@@ -7,27 +7,29 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Abstractions;
-using Microsoft.Extensions.Caching.InMemory;
-
 using Dalamud.Logging.Internal;
 using Dalamud.Networking.Http;
 using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Utility;
-
+using Microsoft.Extensions.Caching.Abstractions;
+using Microsoft.Extensions.Caching.InMemory;
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal.Types;
 
 /// <summary>
-/// This class represents a single plugin repository.
+///     This class represents a single plugin repository.
 /// </summary>
 internal class PluginRepository
 {
     /// <summary>
-    /// The URL of the official main repository.
+    ///     The URL of the official main repository.
     /// </summary>
-    public const string MainRepoUrl = "https://kamori.goats.dev/Plugin/PluginMaster";
+    public const string MainRepoUrlCN = "https://aonyx.ffxiv.wang/Plugin/PluginMaster?apiLevel=11";
+
+    public const string MainRepoUrlGlobal = "https://kamori.goats.dev/Plugin/PluginMaster";
+
+    public static string MainRepoUrl = MainRepoUrlCN;
 
     private const int HttpRequestTimeoutSeconds = 20;
 
@@ -39,14 +41,14 @@ internal class PluginRepository
         new SocketsHttpHandler
         {
             AutomaticDecompression = DecompressionMethods.All,
-            ConnectCallback = Service<HappyHttpClient>.Get().SharedHappyEyeballsCallback.ConnectCallback,
+            ConnectCallback        = Service<HappyHttpClient>.Get().SharedHappyEyeballsCallback.ConnectCallback
         },
         CacheExpirationProvider.CreateSimple(TimeSpan.FromHours(3), TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0)));
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PluginRepository"/> class.
+    ///     Initializes a new instance of the <see cref="PluginRepository" /> class.
     /// </summary>
-    /// <param name="happyHttpClient">An instance of <see cref="HappyHttpClient"/>.</param>
+    /// <param name="happyHttpClient">An instance of <see cref="HappyHttpClient" />.</param>
     /// <param name="pluginMasterUrl">The plugin master URL.</param>
     /// <param name="isEnabled">Whether the plugin repo is enabled.</param>
     public PluginRepository(HappyHttpClient happyHttpClient, string pluginMasterUrl, bool isEnabled)
@@ -54,7 +56,7 @@ internal class PluginRepository
         this.httpClient = new(new SocketsHttpHandler
         {
             AutomaticDecompression = DecompressionMethods.All,
-            ConnectCallback = happyHttpClient.SharedHappyEyeballsCallback.ConnectCallback,
+            ConnectCallback        = happyHttpClient.SharedHappyEyeballsCallback.ConnectCallback
         })
         {
             Timeout = TimeSpan.FromSeconds(20),
@@ -62,123 +64,116 @@ internal class PluginRepository
             {
                 Accept =
                 {
-                    new MediaTypeWithQualityHeaderValue("application/json"),
+                    new MediaTypeWithQualityHeaderValue("application/json")
                 },
                 CacheControl = new CacheControlHeaderValue
                 {
-                    NoCache = true,
+                    NoCache = true
                 },
                 UserAgent =
                 {
-                    new ProductInfoHeaderValue("Dalamud", Util.AssemblyVersion),
-                },
-            },
+                    new ProductInfoHeaderValue("Dalamud", Util.AssemblyVersion)
+                }
+            }
         };
         this.httpClient.DefaultRequestHeaders.Add("X-Machine-Token", DeviceUtils.GetDeviceId());
-        this.PluginMasterUrl = pluginMasterUrl;
-        this.IsThirdParty = pluginMasterUrl != MainRepoUrl;
-        this.IsEnabled = isEnabled;
+        PluginMasterUrl = pluginMasterUrl;
+        IsThirdParty    = pluginMasterUrl != MainRepoUrl;
+        IsEnabled       = isEnabled;
     }
 
     /// <summary>
-    /// Gets the pluginmaster.json URL.
+    ///     Gets the pluginmaster.json URL.
     /// </summary>
     public string PluginMasterUrl { get; }
 
     /// <summary>
-    /// Gets a value indicating whether this plugin repository is from a third party.
+    ///     Gets a value indicating whether this plugin repository is from a third party.
     /// </summary>
     public bool IsThirdParty { get; }
 
     /// <summary>
-    /// Gets a value indicating whether this repo is enabled.
+    ///     Gets a value indicating whether this repo is enabled.
     /// </summary>
     public bool IsEnabled { get; }
 
     /// <summary>
-    /// Gets the plugin master list of available plugins.
+    ///     Gets the plugin master list of available plugins.
     /// </summary>
     public ReadOnlyCollection<RemotePluginManifest>? PluginMaster { get; private set; }
 
     /// <summary>
-    /// Gets the initialization state of the plugin repository.
+    ///     Gets the initialization state of the plugin repository.
     /// </summary>
     public PluginRepositoryState State { get; private set; }
 
     /// <summary>
-    /// Gets a new instance of the <see cref="PluginRepository"/> class for the main repo.
+    ///     Gets a new instance of the <see cref="PluginRepository" /> class for the main repo.
     /// </summary>
-    /// <param name="happyHttpClient">An instance of <see cref="HappyHttpClient"/>.</param>
+    /// <param name="happyHttpClient">An instance of <see cref="HappyHttpClient" />.</param>
     /// <returns>The new instance of main repository.</returns>
-    public static PluginRepository CreateMainRepo(HappyHttpClient happyHttpClient) =>
-        new(happyHttpClient, MainRepoUrl, true);
+    public static PluginRepository CreateMainRepo(HappyHttpClient happyHttpClient)
+    {
+        return new PluginRepository(happyHttpClient, MainRepoUrl, true);
+    }
 
     /// <summary>
-    /// Reload the plugin master asynchronously in a task.
+    ///     Reload the plugin master asynchronously in a task.
     /// </summary>
     /// <param name="skipCache">Skip MemoryCache.</param>
     /// <returns>The new state.</returns>
     public async Task ReloadPluginMasterAsync(bool skipCache)
     {
-        this.State = PluginRepositoryState.InProgress;
-        this.PluginMaster = new List<RemotePluginManifest>().AsReadOnly();
+        State        = PluginRepositoryState.InProgress;
+        PluginMaster = new List<RemotePluginManifest>().AsReadOnly();
 
         try
         {
-            Log.Information($"Fetching repo: {this.PluginMasterUrl}");
+            Log.Information($"Fetching repo: {PluginMasterUrl}");
 
             if (skipCache)
             {
-                CacheHandler.InvalidateCache(new Uri(this.PluginMasterUrl));
-                Log.Information($"Cache Clear: {this.PluginMasterUrl}");
+                CacheHandler.InvalidateCache(new Uri(PluginMasterUrl));
+                Log.Information($"Cache Clear: {PluginMasterUrl}");
             }
 
             // using var response = await HttpClient.GetAsync(this.PluginMasterUrl);
-            using var response = await this.GetPluginMaster(this.PluginMasterUrl);
+            using var response = await GetPluginMaster(PluginMasterUrl);
 
             response.EnsureSuccessStatusCode();
 
-            var data = await response.Content.ReadAsStringAsync();
+            var data         = await response.Content.ReadAsStringAsync();
             var pluginMaster = JsonConvert.DeserializeObject<List<RemotePluginManifest>>(data);
 
-            if (pluginMaster == null)
-            {
-                throw new Exception("Deserialized PluginMaster was null.");
-            }
+            if (pluginMaster == null) throw new Exception("Deserialized PluginMaster was null.");
 
             pluginMaster.Sort((pm1, pm2) => string.Compare(pm1.Name, pm2.Name, StringComparison.Ordinal));
 
             // Set the source for each remote manifest. Allows for checking if is 3rd party.
-            foreach (var manifest in pluginMaster)
-            {
-                manifest.SourceRepo = this;
-            }
+            foreach (var manifest in pluginMaster) manifest.SourceRepo = this;
 
-            var pm = Service<PluginManager>.Get();
+            var pm       = Service<PluginManager>.Get();
             var official = pm.Repos.First();
             Debug.Assert(!official.IsThirdParty, "First repository should be official repository");
 
-            this.PluginMaster = pluginMaster.Where(this.IsValidManifest).ToList().AsReadOnly();
+            PluginMaster = pluginMaster.Where(IsValidManifest).ToList().AsReadOnly();
 
             // API9 HACK: Force IsHide to false, we should remove that
-            if (!this.IsThirdParty)
-            {
-                foreach (var manifest in this.PluginMaster)
-                {
+            if (!IsThirdParty)
+                foreach (var manifest in PluginMaster)
                     manifest.IsHide = false;
-                }
-            }
 
-            Log.Information($"Successfully fetched repo: {this.PluginMasterUrl}");
-            this.State = PluginRepositoryState.Success;
+            Log.Information($"Successfully fetched repo: {PluginMasterUrl}");
+            State = PluginRepositoryState.Success;
 
             var stats = CacheHandler.StatsProvider.GetStatistics().Total;
-            Log.Information($"Cache: TotalRequests:{stats.TotalRequests}/CacheHit:{stats.CacheHit}/CacheMiss:{stats.CacheMiss}");
+            Log.Information(
+                $"Cache: TotalRequests:{stats.TotalRequests}/CacheHit:{stats.CacheHit}/CacheMiss:{stats.CacheMiss}");
         }
         catch (Exception ex)
         {
-            Log.Error(ex, $"PluginMaster failed: {this.PluginMasterUrl}");
-            this.State = PluginRepositoryState.Fail;
+            Log.Error(ex, $"PluginMaster failed: {PluginMasterUrl}");
+            State = PluginRepositoryState.Fail;
         }
     }
 
@@ -186,29 +181,30 @@ internal class PluginRepository
     {
         if (manifest.InternalName.IsNullOrWhitespace())
         {
-            Log.Error("Repository at {RepoLink} has a plugin with an invalid InternalName.", this.PluginMasterUrl);
+            Log.Error("Repository at {RepoLink} has a plugin with an invalid InternalName.", PluginMasterUrl);
             return false;
         }
 
         if (manifest.Name.IsNullOrWhitespace())
         {
-            Log.Error("Plugin {PluginName} in {RepoLink} has an invalid Name.", manifest.InternalName, this.PluginMasterUrl);
+            Log.Error("Plugin {PluginName} in {RepoLink} has an invalid Name.", manifest.InternalName, PluginMasterUrl);
             return false;
         }
 
         // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         if (manifest.AssemblyVersion == null)
         {
-            Log.Error("Plugin {PluginName} in {RepoLink} has an invalid AssemblyVersion.", manifest.InternalName, this.PluginMasterUrl);
+            Log.Error("Plugin {PluginName} in {RepoLink} has an invalid AssemblyVersion.", manifest.InternalName,
+                      PluginMasterUrl);
             return false;
         }
 
-        if (manifest.TestingAssemblyVersion != null &&
+        if (manifest.TestingAssemblyVersion != null                    &&
             manifest.TestingAssemblyVersion > manifest.AssemblyVersion &&
             manifest.TestingDalamudApiLevel == null)
-        {
-            Log.Warning("The plugin {PluginName} in {RepoLink} has a testing version available, but it lacks an associated testing API. The 'TestingDalamudApiLevel' property is required.", manifest.InternalName, this.PluginMasterUrl);
-        }
+            Log.Warning(
+                "The plugin {PluginName} in {RepoLink} has a testing version available, but it lacks an associated testing API. The 'TestingDalamudApiLevel' property is required.",
+                manifest.InternalName, PluginMasterUrl);
 
         return true;
     }

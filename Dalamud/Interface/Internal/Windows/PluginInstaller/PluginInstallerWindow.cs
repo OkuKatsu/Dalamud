@@ -25,6 +25,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
+using Dalamud.Networking.Http;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
@@ -639,7 +640,6 @@ internal class PluginInstallerWindow : Window, IDisposable
         var headerText = Locs.Header_Hint;
         var headerTextSize = ImGui.CalcTextSize(headerText);
         ImGui.Text(headerText);
-        ImGui.TextColored(ImGuiColors.DalamudRed, "插件使用过程中出现问题请优先通过内置反馈或GitHub Issue进行");
 
         ImGui.SameLine();
 
@@ -656,8 +656,26 @@ internal class PluginInstallerWindow : Window, IDisposable
         // Disable search if profile editor
         using (ImRaii.Disabled(isProfileManager))
         {
+            if (ImGui.Button("国服"))
+            {
+                PluginRepository.MainRepoUrl = PluginRepository.MainRepoUrlCN;
+                var pluginManager = Service<PluginManager>.Get();
+                _                      = pluginManager.ReloadPluginMastersAsync();
+            }
+
+            ImGui.SameLine();
+            ImGui.SetCursorPosY(downShift);
+            if (ImGui.Button("国际服"))
+            {
+                PluginRepository.MainRepoUrl = PluginRepository.MainRepoUrlGlobal;
+                var pluginManager = Service<PluginManager>.Get();
+                _                      = pluginManager.ReloadPluginMastersAsync();
+            }
+            
             var searchTextChanged = false;
             var prevSearchText = this.searchText;
+            ImGui.SameLine();
+            ImGui.SetCursorPosY(downShift);
             ImGui.SetNextItemWidth(searchInputWidth);
             searchTextChanged |= ImGui.InputTextWithHint(
                 "###XlPluginInstaller_Search",

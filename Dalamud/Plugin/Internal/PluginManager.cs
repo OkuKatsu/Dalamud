@@ -221,7 +221,7 @@ internal class PluginManager : IInternalDisposableService
     /// <summary>
     /// Gets the main repository.
     /// </summary>
-    public PluginRepository MainRepo { get; }
+    public PluginRepository MainRepo { get; set; }
 
     /// <summary>
     /// Gets a list of all plugin repositories. The main repo should always be first.
@@ -722,6 +722,10 @@ internal class PluginManager : IInternalDisposableService
     public async Task ReloadPluginMastersAsync(bool notify = true, bool skipCache = false)
     {
         Log.Information("Now reloading all PluginMasters...");
+
+        this.MainRepo = PluginRepository.CreateMainRepo(this.happyHttpClient);
+        Repos[0] = this.MainRepo;
+        
         this.ReposReady = false;
 
         try
