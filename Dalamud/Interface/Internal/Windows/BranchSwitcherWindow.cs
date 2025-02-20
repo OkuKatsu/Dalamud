@@ -21,8 +21,11 @@ namespace Dalamud.Interface.Internal.Windows;
 /// </summary>
 public class BranchSwitcherWindow : Window
 {
-    private const string BranchInfoUrl = "https://kamori.goats.dev/Dalamud/Release/Meta";
+    private const string BranchInfoUrlGlobal = "https://kamori.goats.dev/Dalamud/Release/Meta";
+    private const string BranchInfoUrlCN = "https://aonyx.ffxiv.wang/Dalamud/Release/Meta";
 
+    private string currentUrl = BranchInfoUrlGlobal;
+    
     private Dictionary<string, VersionEntry> branches = [];
     private int selectedBranchIndex;
 
@@ -39,48 +42,31 @@ public class BranchSwitcherWindow : Window
     /// <inheritdoc/>
     public override void OnOpen()
     {
-        Task.Run(async () =>
-        {
-            var client = Service<HappyHttpClient>.Get().SharedHttpClient;
-            this.branches = await client.GetFromJsonAsync<Dictionary<string, VersionEntry>>(BranchInfoUrl);
-            Debug.Assert(this.branches != null, "this.branches != null");
-
-            var config = Service<DalamudConfiguration>.Get();
-            this.selectedBranchIndex = this.branches!.Any(x => x.Key == config.DalamudBetaKind) ?
-                                           this.branches.TakeWhile(x => x.Key != config.DalamudBetaKind).Count()
-                                           : 0;
-
-            if (this.branches.ElementAt(this.selectedBranchIndex).Value.Key != config.DalamudBetaKey)
-                this.selectedBranchIndex = 0;
-        });
-
+        this.ReloadBranchInfo();
         base.OnOpen();
     }
 
     /// <inheritdoc/>
     public override void Draw()
     {
-        var si = Service<Dalamud>.Get().StartInfo;
-
+        if (ImGui.Button("加载国际服分支"))
+            ReloadBranchInfo();
+        
+        ImGui.SameLine();
+        if (ImGui.Button("加载国服分支"))
+            ReloadBranchInfo(BranchInfoUrlCN);
+        
         var itemsArray = this.branches.Select(x => x.Key).ToArray();
-        ImGui.ListBox("Branch", ref this.selectedBranchIndex, itemsArray, itemsArray.Length);
+        ImGui.ListBox("###Branch", ref this.selectedBranchIndex, itemsArray, itemsArray.Length);
 
         var pickedBranch = this.branches.ElementAt(this.selectedBranchIndex);
 
-        ImGui.Text($"Version: {pickedBranch.Value.AssemblyVersion} ({pickedBranch.Value.GitSha ?? "unk"})");
-        ImGui.Text($"Runtime: {pickedBranch.Value.RuntimeVersion}");
+        ImGui.Text($"版本: {pickedBranch.Value.AssemblyVersion} ({pickedBranch.Value.GitSha ?? "unk"})");
+        ImGui.Text($"运行时: {pickedBranch.Value.RuntimeVersion}");
 
         ImGuiHelpers.ScaledDummy(5);
 
-        void Pick()
-        {
-            var config = Service<DalamudConfiguration>.Get();
-            config.DalamudBetaKind = pickedBranch.Key;
-            config.DalamudBetaKey = pickedBranch.Value.Key;
-            config.QueueSave();
-        }
-
-        if (ImGui.Button("Pick"))
+        if (ImGui.Button("选择"))
         {
             Pick();
             this.IsOpen = false;
@@ -88,7 +74,7 @@ public class BranchSwitcherWindow : Window
 
         ImGui.SameLine();
 
-        if (ImGui.Button("Pick & Restart"))
+        if (ImGui.Button("选择 & 重启"))
         {
             Pick();
 
@@ -104,6 +90,33 @@ public class BranchSwitcherWindow : Window
                 Environment.Exit(0);
             }
         }
+
+        return;
+
+        void Pick()
+        {
+            var config = Service<DalamudConfiguration>.Get();
+            config.DalamudBetaKind = pickedBranch.Key;
+            config.DalamudBetaKey  = pickedBranch.Value.Key;
+            config.QueueSave();
+        }
+    }
+
+    private void ReloadBranchInfo(string url = BranchInfoUrlGlobal)
+    {
+        Task.Run(async () =>
+        {
+            var client = Service<HappyHttpClient>.Get().SharedHttpClient;
+            this.branches = await client.GetFromJsonAsync<Dictionary<string, VersionEntry>>(url);
+
+            var config = Service<DalamudConfiguration>.Get();
+            this.selectedBranchIndex = this.branches!.Any(x => x.Key          == config.DalamudBetaKind) ?
+                                           this.branches.TakeWhile(x => x.Key != config.DalamudBetaKind).Count()
+                                           : 0;
+
+            if (this.branches.ElementAt(this.selectedBranchIndex).Value.Key != config.DalamudBetaKey)
+                this.selectedBranchIndex = 0;
+        });
     }
 
     private class VersionEntry
