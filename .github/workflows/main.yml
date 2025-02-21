@@ -84,7 +84,7 @@ jobs:
 
       - name: Compress Release files
         run: |
-          7z a -t7z bin/Release/latest.7z bin/Release\* -mx=9 -x!hashes.json -x!version.json
+          7z a -t7z bin/Release/latest.7z bin/Release\* -mx=9
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -99,6 +99,5 @@ jobs:
           files: |
             bin/Release/latest.7z
             bin/Release/hashes.json
-            bin/Release/version.json
           draft: false
           prerelease: false
