@@ -79,6 +79,13 @@ jobs:
       - name: Create hashlist
         run: .\CreateHashList.ps1 .\bin\Release
 
+      - name: Install 7-Zip
+        run: choco install 7zip -y
+
+      - name: Compress Release files
+        run: |
+          7z a -t7z bin/Release/latest.7z bin/Release\* -mx=9 -x!hashes.json -x!version.json
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
@@ -90,8 +97,8 @@ jobs:
             Commit: ${{ github.sha }}
             Branch: ${{ github.ref_name }}
           files: |
-            bin/Release/*.dll
-            bin/Release/*.exe
-            bin/Release/*.json
+            bin/Release/latest.7z
+            bin/Release/hashes.json
+            bin/Release/version.json
           draft: false
           prerelease: false
