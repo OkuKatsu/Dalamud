@@ -23,15 +23,15 @@ jobs:
       - name: Generate release tag (UTC+8)
         id: generate-tag
         run: |
-          # 东八区
-          Add-Type -AssemblyName System.TimeZoneInfo
-          $tz = [System.TimeZoneInfo]::FindSystemTimeZoneById("China Standard Time")
-          $now = [System.TimeZoneInfo]::ConvertTimeFromUtc((Get-Date).ToUniversalTime(), $tz)
+          $tzId = "China Standard Time"
+          $utcNow = [DateTime]::UtcNow
+          $cstTime = [System.TimeZoneInfo]::ConvertTimeBySystemTimeZoneId($utcNow, $tzId)
           
-          # 日期
-          $datePart = $now.ToString("yy-MM-dd")
+          # 东八区
+          $datePart = $cstTime.ToString("yy-MM-dd")
           
           # 获取当天所有标签
+          git fetch --tags  # 显式获取远程标签
           $tags = git tag --list "$datePart-*"
           
           # 查找最大序号
@@ -48,7 +48,7 @@ jobs:
           $nextNumber = $maxNumber + 1
           $newTag = "{0}-{1:D2}" -f $datePart, $nextNumber
           echo "new_tag=$newTag" >> $env:GITHUB_OUTPUT
-          echo "TAG=$newTag" >> $env:GITHUB_ENV  # 注入环境变量
+          echo "TAG=$newTag" >> $env:GITHUB_ENV
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1.0.2
