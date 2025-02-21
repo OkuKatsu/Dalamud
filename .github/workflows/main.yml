@@ -84,7 +84,9 @@ jobs:
 
       - name: Compress Release files
         run: |
-          7z a -t7z bin/Release/latest.7z bin/Release\* -mx=9
+          # 进入 Release 目录后压缩，避免保留父目录结构
+          cd bin/Release
+          7z a -t7z latest.7z * -mx=9
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
