@@ -90,6 +90,8 @@ jobs:
             Commit: ${{ github.sha }}
             Branch: ${{ github.ref_name }}
           files: |
-            bin/Release/**/*
+            bin/Release/*.dll
+            bin/Release/*.exe
+            bin/Release/*.json
           draft: false
           prerelease: false
