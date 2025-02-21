@@ -1,5 +1,5 @@
 name: Build Dalamud
-on: [push, pull_request, workflow_dispatch]
+on: workflow_dispatch
 concurrency:
   group: build_dalamud_${{ github.ref_name }}
   cancel-in-progress: true
@@ -9,7 +9,7 @@ jobs:
     name: Build on Windows
     permissions:
       id-token: write
-      contents: read
+      contents: write
       attestations: write
     runs-on: windows-2022
     steps:
@@ -18,13 +18,49 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
+          fetch-tags: true
+
+      - name: Generate release tag (UTC+8)
+        id: generate-tag
+        run: |
+          # 东八区
+          Add-Type -AssemblyName System.TimeZoneInfo
+          $tz = [System.TimeZoneInfo]::FindSystemTimeZoneById("China Standard Time")
+          $now = [System.TimeZoneInfo]::ConvertTimeFromUtc((Get-Date).ToUniversalTime(), $tz)
+          
+          # 日期
+          $datePart = $now.ToString("yy-MM-dd")
+          
+          # 获取当天所有标签
+          $tags = git tag --list "$datePart-*"
+          
+          # 查找最大序号
+          $maxNumber = 0
+          foreach ($tag in $tags) {
+              $numberPart = $tag.Split('-')[-1]
+              if ($numberPart -match '^\d{2}$') {
+                  $currentNumber = [int]$numberPart
+                  $maxNumber = [Math]::Max($maxNumber, $currentNumber)
+              }
+          }
+          
+          # 生成新序号
+          $nextNumber = $maxNumber + 1
+          $newTag = "{0}-{1:D2}" -f $datePart, $nextNumber
+          echo "new_tag=$newTag" >> $env:GITHUB_OUTPUT
+          echo "TAG=$newTag" >> $env:GITHUB_ENV  # 注入环境变量
+
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1.0.2
+
       - uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0.100'
+
       - name: Define VERSION
         run: |
+          # 包含生成的 TAG
+          $env:TAG = "${{ env.TAG }}"
           $env:COMMIT = $env:GITHUB_SHA.Substring(0, 7)
           $env:REPO_NAME = $env:GITHUB_REPOSITORY -replace '.*/'
           $env:BRANCH = $env:GITHUB_REF -replace '.*/'
@@ -32,25 +68,28 @@ jobs:
           ($env:REPO_NAME) >> VERSION
           ($env:BRANCH) >> VERSION
           ($env:COMMIT) >> VERSION
+          ($env:TAG) >> VERSION
+
       - name: Build Dalamud
         run: .\build.ps1 compile
+
       - name: Test Dalamud
         run: .\build.ps1 test
+
       - name: Create hashlist
         run: .\CreateHashList.ps1 .\bin\Release
-      - name: Attest Build
-        if: github.event_name == 'push'
-        uses: actions/attest-build-provenance@v1
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
         with:
-          subject-path: |
-            bin/Release/hashes.json
-            bin/Release/Dalamud.dll
-            bin/Release/DalamudCrashHandler.exe
-            bin/Release/Dalamud.*.dll
-            bin/Release/Dalamud.*.exe
-            bin/Release/FFXIVClientStructs.dll
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dalamud-artifact
-          path: bin\Release
+          tag_name: ${{ env.TAG }}
+          name: Release ${{ env.TAG }}
+          body: |
+            Automated Release
+            Build Date: ${{ env.TAG }} (UTC+8)
+            Commit: ${{ github.sha }}
+            Branch: ${{ github.ref_name }}
+          files: |
+            bin/Release/**/*
+          draft: false
+          prerelease: false
