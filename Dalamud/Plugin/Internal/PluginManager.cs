@@ -256,7 +256,7 @@ internal class PluginManager : IInternalDisposableService
     /// <summary>
     /// Gets or sets a value indicating whether banned plugins will be loaded.
     /// </summary>
-    public bool LoadBannedPlugins { get; set; }
+    public bool LoadBannedPlugins { get; set; } = true;
 
     /// <summary>
     /// Gets a tracker for plugins that are loading at startup, used to display information to the user.

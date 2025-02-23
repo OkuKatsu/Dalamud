@@ -1,8 +1,13 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
 using CheapLoc;
+using Dalamud.Configuration.Internal;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Internal.Windows.Settings.Widgets;
+using Dalamud.Interface.Utility;
+using Dalamud.Plugin.Internal;
+using Dalamud.Plugin.Internal.Types;
+using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
 
@@ -29,9 +34,9 @@ public class SettingsTabGeneral : SettingsTab
                 return null;
             },
             fallbackValue: XivChatType.Debug),
-
+        
         new GapSettingsEntry(5),
-
+        
         new SettingsEntry<bool>(
             Loc.Localize("DalamudSettingsWaitForPluginsOnStartup", "Wait for plugins before game loads"),
             Loc.Localize("DalamudSettingsWaitForPluginsOnStartupHint", "Do not let the game load, until plugins are loaded."),
@@ -75,7 +80,57 @@ public class SettingsTabGeneral : SettingsTab
             Loc.Localize("DalamudSettingDoMbCollectHint", "Anonymously provide data about in-game economics to Universalis when browsing the market board. This data can't be tied to you in any way and everyone benefits!"),
             c => c.IsMbCollect,
             (v, c) => c.IsMbCollect = v),
+        
+        new GapSettingsEntry(5),
     };
 
     public override string Title => Loc.Localize("DalamudSettingsGeneral", "General");
+    
+    public override void Draw()
+    {
+        var config      = Service<DalamudConfiguration>.Get();
+        var mainRepoUrl = config.MainRepoUrl;
+        
+        ImGui.Text("默认主库");
+        if (ImGui.RadioButton("国服 (ottercorp)", mainRepoUrl == PluginRepository.MainRepoUrlCN))
+        {
+            config.MainRepoUrl = PluginRepository.MainRepoUrlCN;
+            config.QueueSave();
+            
+            _ = Service<PluginManager>.Get().ReloadPluginMastersAsync();
+        }
+        
+        ImGui.SameLine();
+        if (ImGui.RadioButton("国际服 (goatcorp)", mainRepoUrl == PluginRepository.MainRepoUrlGlobal))
+        {
+            config.MainRepoUrl = PluginRepository.MainRepoUrlGlobal;
+            config.QueueSave();
+            
+            _ = Service<PluginManager>.Get().ReloadPluginMastersAsync();
+        }
+        
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text("自定义:");
+        
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(500f * ImGuiHelpers.GlobalScale);
+        ImGui.InputText("###CustomMainRepo", ref mainRepoUrl, 1024);
+        
+        if (ImGui.IsItemDeactivatedAfterEdit())
+        {
+            if (string.IsNullOrWhiteSpace(mainRepoUrl))
+                mainRepoUrl = PluginRepository.MainRepoUrlCN;
+            
+            config.MainRepoUrl = mainRepoUrl;
+            config.QueueSave();
+            
+            _ = Service<PluginManager>.Get().ReloadPluginMastersAsync();
+        }
+        
+        ImGui.TextDisabled("选择 Dalamud 默认将会加载的主库, 你也可以选择自定义主库 (请注意 API 版本)");
+        
+        ImGuiHelpers.ScaledDummy(20);
+        
+        base.Draw();
+    }
 }

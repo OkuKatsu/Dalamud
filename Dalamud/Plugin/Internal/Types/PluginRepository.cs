@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
+using Dalamud.Configuration.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Networking.Http;
 using Dalamud.Plugin.Internal.Types.Manifest;
@@ -29,7 +30,7 @@ internal class PluginRepository
 
     public const string MainRepoUrlGlobal = "https://kamori.goats.dev/Plugin/PluginMaster";
 
-    public static string MainRepoUrl = MainRepoUrlCN;
+    public static string MainRepoUrl => Service<DalamudConfiguration>.Get().MainRepoUrl;
 
     private const int HttpRequestTimeoutSeconds = 20;
 

@@ -25,7 +25,6 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
-using Dalamud.Networking.Http;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
@@ -46,13 +45,13 @@ internal class PluginInstallerWindow : Window, IDisposable
 {
     private static readonly ModuleLog Log = new("PLUGINW");
 
-    private readonly Vector4 changelogBgColor = new(0.114f, 0.584f, 0.192f, 0.678f);
+    private readonly Vector4 changelogBgColor   = new(0.114f, 0.584f, 0.192f, 0.678f);
     private readonly Vector4 changelogTextColor = new(0.812f, 1.000f, 0.816f, 1.000f);
 
-    private readonly PluginImageCache imageCache;
+    private readonly PluginImageCache      imageCache;
     private readonly PluginCategoryManager categoryManager = new();
 
-    private readonly List<int> openPluginCollapsibles = new();
+    private readonly List<int> openPluginCollapsibles = [];
 
     private readonly DateTime timeLoaded;
 
@@ -61,86 +60,88 @@ internal class PluginInstallerWindow : Window, IDisposable
     private readonly ProfileManagerWidget profileManagerWidget;
 
     private readonly Stopwatch tooltipFadeInStopwatch = new();
+
     private readonly InOutCubic tooltipFadeEasing = new(TimeSpan.FromSeconds(0.2f))
     {
         Point1 = Vector2.Zero,
-        Point2 = Vector2.One,
+        Point2 = Vector2.One
     };
 
     private DalamudChangelogManager? dalamudChangelogManager;
-    private Task? dalamudChangelogRefreshTask;
+    private Task?                    dalamudChangelogRefreshTask;
     private CancellationTokenSource? dalamudChangelogRefreshTaskCts;
-    private DateTime lastRefreshTime = DateTime.MinValue;
 
     #region Image Tester State
 
-    private string[] testerImagePaths = new string[5];
-    private string testerIconPath = string.Empty;
+    private readonly string[] testerImagePaths = new string[5];
+    private          string   testerIconPath   = string.Empty;
 
     private Task<IDalamudTextureWrap>?[]? testerImages;
-    private Task<IDalamudTextureWrap>? testerIcon;
+    private Task<IDalamudTextureWrap>?    testerIcon;
 
-    private bool testerError = false;
-    private bool testerUpdateAvailable = false;
+    private bool testerError;
+    private bool testerUpdateAvailable;
 
     #endregion
 
-    private bool errorModalDrawing = true;
-    private bool errorModalOnNextFrame = false;
-    private string errorModalMessage = string.Empty;
+    private bool                  errorModalDrawing = true;
+    private bool                  errorModalOnNextFrame;
+    private string                errorModalMessage = string.Empty;
     private TaskCompletionSource? errorModalTaskCompletionSource;
 
-    private bool updateModalDrawing = true;
-    private bool updateModalOnNextFrame = false;
-    private LocalPlugin? updateModalPlugin = null;
+    private bool                        updateModalDrawing = true;
+    private bool                        updateModalOnNextFrame;
+    private LocalPlugin?                updateModalPlugin;
     private TaskCompletionSource<bool>? updateModalTaskCompletionSource;
 
     private bool testingWarningModalDrawing = true;
-    private bool testingWarningModalOnNextFrame = false;
+    private bool testingWarningModalOnNextFrame;
 
-    private bool deletePluginConfigWarningModalDrawing = true;
-    private bool deletePluginConfigWarningModalOnNextFrame = false;
-    private bool deletePluginConfigWarningModalExplainTesting = false;
-    private string deletePluginConfigWarningModalPluginName = string.Empty;
+    private bool                        deletePluginConfigWarningModalDrawing = true;
+    private bool                        deletePluginConfigWarningModalOnNextFrame;
+    private bool                        deletePluginConfigWarningModalExplainTesting;
+    private string                      deletePluginConfigWarningModalPluginName = string.Empty;
     private TaskCompletionSource<bool>? deletePluginConfigWarningModalTaskCompletionSource;
 
-    private bool feedbackModalDrawing = true;
-    private bool feedbackModalOnNextFrame = false;
-    private bool feedbackModalOnNextFrameDontClear = false;
-    private string feedbackModalBody = string.Empty;
-    private string feedbackModalContact = string.Empty;
-    private bool feedbackModalIncludeException = true;
-    private IPluginManifest? feedbackPlugin = null;
-    private bool feedbackIsTesting = false;
+    private bool             feedbackModalDrawing = true;
+    private bool             feedbackModalOnNextFrame;
+    private bool             feedbackModalOnNextFrameDontClear;
+    private string           feedbackModalBody             = string.Empty;
+    private string           feedbackModalContact          = string.Empty;
+    private bool             feedbackModalIncludeException = true;
+    private IPluginManifest? feedbackPlugin;
+    private bool             feedbackIsTesting;
 
-    private int updatePluginCount = 0;
+    private int                       updatePluginCount;
     private List<PluginUpdateStatus>? updatedPlugins;
 
-    [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "Makes sense like this")]
-    private List<RemotePluginManifest> pluginListAvailable = new();
-    private List<LocalPlugin> pluginListInstalled = new();
-    private List<AvailablePluginUpdate> pluginListUpdatable = new();
-    private bool hasDevPlugins = false;
-    private bool hasHiddenPlugins = false;
+    [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order",
+                     Justification = "Makes sense like this")]
+    private List<RemotePluginManifest> pluginListAvailable = [];
+
+    private List<LocalPlugin>           pluginListInstalled;
+    private List<AvailablePluginUpdate> pluginListUpdatable = [];
+    private bool                        hasDevPlugins;
+    private bool                        hasHiddenPlugins;
 
     private string searchText = string.Empty;
-    private bool isSearchTextPrefilled = false;
+    private bool   isSearchTextPrefilled;
 
-    private PluginSortKind sortKind = PluginSortKind.Alphabetical;
-    private string filterText = Locs.SortBy_Alphabetical;
-    private bool adaptiveSort = true;
+    private PluginSortKind sortKind     = PluginSortKind.Alphabetical;
+    private string         filterText   = Locs.SortBy_Alphabetical;
+    private bool           adaptiveSort = true;
 
     private OperationStatus installStatus = OperationStatus.Idle;
-    private OperationStatus updateStatus = OperationStatus.Idle;
+    private OperationStatus updateStatus  = OperationStatus.Idle;
 
-    private OperationStatus enableDisableStatus = OperationStatus.Idle;
-    private Guid enableDisableWorkingPluginId = Guid.Empty;
+    private OperationStatus enableDisableStatus          = OperationStatus.Idle;
+    private Guid            enableDisableWorkingPluginId = Guid.Empty;
 
     private LoadingIndicatorKind loadingIndicatorKind = LoadingIndicatorKind.Unknown;
 
     private string verifiedCheckmarkHoveredPlugin = string.Empty;
 
-    private string? staleDalamudNewVersion = null;
+    private string? staleDalamudNewVersion;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginInstallerWindow"/> class.
@@ -152,8 +153,9 @@ internal class PluginInstallerWindow : Window, IDisposable
             Locs.WindowTitle + (configuration.DoPluginTest ? Locs.WindowTitleMod_Testing : string.Empty) + "###XlPluginInstaller",
             ImGuiWindowFlags.NoScrollbar)
     {
-        this.IsOpen = true;
-        this.imageCache = imageCache;
+        this.pluginListInstalled = new List<LocalPlugin>();
+        this.IsOpen              = true;
+        this.imageCache          = imageCache;
 
         this.Size = new Vector2(830, 570);
         this.SizeCondition = ImGuiCond.FirstUseEver;
@@ -290,7 +292,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         this.filterText = Locs.SortBy_Alphabetical;
         this.adaptiveSort = true;
 
-        if (this.updateStatus == OperationStatus.Complete || this.updateStatus == OperationStatus.Idle)
+        if (this.updateStatus is OperationStatus.Complete or OperationStatus.Idle)
         {
             this.updateStatus = OperationStatus.Idle;
             this.updatePluginCount = 0;
@@ -535,38 +537,38 @@ internal class PluginInstallerWindow : Window, IDisposable
             switch (this.loadingIndicatorKind)
             {
                 case LoadingIndicatorKind.Unknown:
-                    ImGuiHelpers.CenteredText("Doing something, not sure what!");
+                    ImGuiHelpers.CenteredText("总之在干点什么, 但不知道在干什么");
                     break;
                 case LoadingIndicatorKind.EnablingSingle:
-                    ImGuiHelpers.CenteredText("Enabling plugin...");
+                    ImGuiHelpers.CenteredText("启用插件中...");
                     break;
                 case LoadingIndicatorKind.DisablingSingle:
-                    ImGuiHelpers.CenteredText("Disabling plugin...");
+                    ImGuiHelpers.CenteredText("禁用插件中...");
                     break;
                 case LoadingIndicatorKind.UpdatingSingle:
-                    ImGuiHelpers.CenteredText("Updating plugin...");
+                    ImGuiHelpers.CenteredText("更新插件中...");
                     break;
                 case LoadingIndicatorKind.UpdatingAll:
-                    ImGuiHelpers.CenteredText("Updating plugins...");
+                    ImGuiHelpers.CenteredText("批量更新插件中...");
                     break;
                 case LoadingIndicatorKind.Installing:
-                    ImGuiHelpers.CenteredText("Installing plugin...");
+                    ImGuiHelpers.CenteredText("安装插件中...");
                     break;
                 case LoadingIndicatorKind.Manager:
                     {
-                        if (pluginManager.PluginsReady && !pluginManager.ReposReady)
+                        switch (pluginManager.PluginsReady) 
                         {
-                            ImGuiHelpers.CenteredText("Loading repositories...");
+                            case true when !pluginManager.ReposReady:
+                                ImGuiHelpers.CenteredText("加载仓库中...");
+                                break;
+                            case false when pluginManager.ReposReady:
+                                ImGuiHelpers.CenteredText("加载已安装插件中...");
+                                break;
+                            default:
+                                ImGuiHelpers.CenteredText("加载仓库与插件中...");
+                                break;
                         }
-                        else if (!pluginManager.PluginsReady && pluginManager.ReposReady)
-                        {
-                            ImGuiHelpers.CenteredText("Loading installed plugins...");
-                        }
-                        else
-                        {
-                            ImGuiHelpers.CenteredText("Loading repositories and plugins...");
-                        }
-
+                        
                         var currentProgress = 0;
                         var total = 0;
 
@@ -595,7 +597,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                     break;
                 case LoadingIndicatorKind.ProfilesLoading:
-                    ImGuiHelpers.CenteredText("Collections are being applied...");
+                    ImGuiHelpers.CenteredText("应用合集中...");
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -604,7 +606,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (DateTime.Now - this.timeLoaded > TimeSpan.FromSeconds(90) && !pluginManager.PluginsReady)
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-                ImGuiHelpers.CenteredText("One of your plugins may be blocking the installer.");
+                ImGuiHelpers.CenteredText("任一插件正在阻碍插件安装器加载, 请自行检查");
                 ImGui.PopStyleColor();
             }
         }
@@ -656,21 +658,18 @@ internal class PluginInstallerWindow : Window, IDisposable
         // Disable search if profile editor
         using (ImRaii.Disabled(isProfileManager))
         {
-            if (ImGui.Button("国服"))
+            var currentMainRepo = PluginRepository.MainRepoUrl switch
             {
-                PluginRepository.MainRepoUrl = PluginRepository.MainRepoUrlCN;
-                var pluginManager = Service<PluginManager>.Get();
-                _                      = pluginManager.ReloadPluginMastersAsync();
-            }
-
-            ImGui.SameLine();
-            ImGui.SetCursorPosY(downShift);
-            if (ImGui.Button("国际服"))
-            {
-                PluginRepository.MainRepoUrl = PluginRepository.MainRepoUrlGlobal;
-                var pluginManager = Service<PluginManager>.Get();
-                _                      = pluginManager.ReloadPluginMastersAsync();
-            }
+                PluginRepository.MainRepoUrlGlobal => "国际服",
+                PluginRepository.MainRepoUrlCN     => "国服",
+                _                                  => "未知"
+            };
+            
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text($"当前主库: {currentMainRepo}");
+            
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("你可以在 Dalamud 设置 - 基本配置 中切换想要使用的默认主库\n底部按钮仅用于当次游戏临时切换");
             
             var searchTextChanged = false;
             var prevSearchText = this.searchText;
@@ -742,8 +741,6 @@ internal class PluginInstallerWindow : Window, IDisposable
                         lock (this.listLock)
                         {
                             this.ResortPlugins();
-
-                            // Positions of plugins within the list is likely to change
                             this.openPluginCollapsibles.Clear();
                         }
                     }
@@ -767,41 +764,21 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.SetCursorPosY(windowSize.Y - placeholderButtonSize.Y);
 
         this.DrawUpdatePluginsButton();
+        
+        ImGui.SameLine();
+        if (ImGui.Button("扫描开发版插件"))
+            pluginManager.ScanDevPlugins();
+        
+        ImGui.SameLine();
+        if (ImGui.Button("刷新插件列表"))
+            _ = pluginManager.ReloadPluginMastersAsync(true, true);
+        
+        ImGui.SameLine();
+        ImGui.TextDisabled("|");
 
         ImGui.SameLine();
         if (ImGui.Button(Locs.FooterButton_Settings))
-        {
             Service<DalamudInterface>.Get().OpenSettings();
-        }
-
-        // If any dev plugins are installed, allow a shortcut for the /xldev menu item
-        if (this.hasDevPlugins)
-        {
-            ImGui.SameLine();
-            if (ImGui.Button(Locs.FooterButton_ScanDevPlugins))
-            {
-                pluginManager.ScanDevPlugins();
-            }
-        }
-
-        //刷新缓存
-        {
-            ImGui.SameLine();
-            var cooldownFinished = this.lastRefreshTime.AddMinutes(1D).CompareTo(DateTime.Now) < 0;
-
-            if (ImGuiComponents.IconButton(FontAwesomeIcon.CloudDownloadAlt))
-            {
-                if (cooldownFinished)
-                {
-                    _ = pluginManager.ReloadPluginMastersAsync(true, true);
-                    this.lastRefreshTime = DateTime.Now;
-                }
-            }
-            if (ImGui.IsItemHovered())
-            {
-                ImGui.SetTooltip(cooldownFinished ? "更新插件列表缓存" : "少女折寿中...");
-            }
-        }
 
         var closeText = Locs.FooterButton_Close;
         var closeButtonSize = ImGuiHelpers.GetButtonSize(closeText);
@@ -4014,41 +3991,41 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         #region Plugin title text
 
-        public static string PluginTitleMod_Installed => Loc.Localize("InstallerInstalled", " (installed)");
+        public static string PluginTitleMod_Installed => " (已安装)";
 
-        public static string PluginTitleMod_Disabled => Loc.Localize("InstallerDisabled", " (disabled)");
+        public static string PluginTitleMod_Disabled => " (已禁用)";
 
-        public static string PluginTitleMod_NoService => Loc.Localize("InstallerNoService", " (decommissioned)");
+        public static string PluginTitleMod_NoService => " (已过时)";
 
-        public static string PluginTitleMod_Unloaded => Loc.Localize("InstallerUnloaded", " (unloaded)");
+        public static string PluginTitleMod_Unloaded => " (已卸载)";
 
-        public static string PluginTitleMod_HasUpdate => Loc.Localize("InstallerHasUpdate", " (has update)");
+        public static string PluginTitleMod_HasUpdate => " (可更新)";
 
-        public static string PluginTitleMod_Updated => Loc.Localize("InstallerUpdated", " (updated)");
+        public static string PluginTitleMod_Updated => " (已更新)";
 
-        public static string PluginTitleMod_TestingVersion => Loc.Localize("InstallerTestingVersion", " (testing version)");
+        public static string PluginTitleMod_TestingVersion => " (测试版)";
 
-        public static string PluginTitleMod_TestingExclusive => Loc.Localize("InstallerTestingExclusive", " (testing exclusive)");
+        public static string PluginTitleMod_TestingExclusive => " (仅限测试版)";
 
-        public static string PluginTitleMod_TestingAvailable => Loc.Localize("InstallerTestingAvailable", " (has testing version)");
+        public static string PluginTitleMod_TestingAvailable => " (存在测试版)";
 
-        public static string PluginTitleMod_DevPlugin => Loc.Localize("InstallerDevPlugin", " (dev plugin)");
+        public static string PluginTitleMod_DevPlugin => " (开发版)";
 
-        public static string PluginTitleMod_UpdateFailed => Loc.Localize("InstallerUpdateFailed", " (update failed)");
+        public static string PluginTitleMod_UpdateFailed => " (更新失败)";
 
-        public static string PluginTitleMod_LoadError => Loc.Localize("InstallerLoadError", " (load error)");
+        public static string PluginTitleMod_LoadError => " (加载失败)";
 
-        public static string PluginTitleMod_UnloadError => Loc.Localize("InstallerUnloadError", " (unload error)");
+        public static string PluginTitleMod_UnloadError => " (卸载错误)";
 
-        public static string PluginTitleMod_OutdatedError => Loc.Localize("InstallerOutdatedError", " (outdated)");
+        public static string PluginTitleMod_OutdatedError => " (已过时)";
 
-        public static string PluginTitleMod_BannedError => Loc.Localize("InstallerBannedError", " (automatically disabled)");
+        public static string PluginTitleMod_BannedError => " (自动禁用)";
 
-        public static string PluginTitleMod_OrphanedError => Loc.Localize("InstallerOrphanedError", " (unknown repository)");
+        public static string PluginTitleMod_OrphanedError => " (未知仓库)";
 
-        public static string PluginTitleMod_ScheduledForDeletion => Loc.Localize("InstallerScheduledForDeletion", " (scheduled for deletion)");
+        public static string PluginTitleMod_ScheduledForDeletion => " (计划删除)";
 
-        public static string PluginTitleMod_New => Loc.Localize("InstallerNewPlugin ", " New!");
+        public static string PluginTitleMod_New => Loc.Localize("InstallerNewPlugin ", " 新插件!");
 
         #endregion
 

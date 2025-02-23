@@ -403,7 +403,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
                         ImGuiHelpers.ScaledDummy(5);
                         ImGui.TextWrapped("要更新插件，请打开插件安装程序，然后点击“更新插件”。更新后的插件应会自动更新并重新启用。");
                         ImGuiHelpers.ScaledDummy(5);
-                        ImGui.TextWrapped("请记住，并非您所有的插件都可能已经针对新版本进行了更新。");
+                        ImGui.TextWrapped("请记住，并非你所有的插件都可能已经针对新版本进行了更新。");
                         ImGui.TextWrapped("如果在“已安装插件”选项卡中显示某些插件带有红色叉号，那么它们可能还不可用。");
                         
                         ImGuiHelpers.ScaledDummy(15);
@@ -428,11 +428,11 @@ internal sealed class ChangelogWindow : Window, IDisposable
                         break;
                     
                     case State.AskAutoUpdate:
-                        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudWhite, "Dalamud 可以自动更新您的插件，确保您始终拥有最新的功能和错误修复。您可以在此处选择何时以及如何运行自动更新。");
+                        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudWhite, "Dalamud 可以自动更新你的插件，确保你始终拥有最新的功能和错误修复。你可以在此处选择何时以及如何运行自动更新。");
                         ImGuiHelpers.ScaledDummy(2);
                         
-                        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, "您始终可以通过单击插件列表中的更新按钮来手动更新插件。您还可以通过右键单击特定插件并选择“始终自动更新”来选择更新特定插件。");
-                        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, "Dalamud 只会在您处于休闲状态下通知您更新。");
+                        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, "你始终可以通过单击插件列表中的更新按钮来手动更新插件。你还可以通过右键单击特定插件并选择“始终自动更新”来选择更新特定插件。");
+                        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, "Dalamud 只会在你处于休闲状态下通知你更新。");
                         
                         ImGuiHelpers.ScaledDummy(15);
                         
@@ -471,8 +471,8 @@ internal sealed class ChangelogWindow : Window, IDisposable
                         break;
                     
                     case State.Links:
-                        ImGui.TextWrapped("如果您注意到任何问题或需要帮助，请查看常见问题解答，并在需要帮助的情况下在我们的QQ频道上联系我们。");
-                        ImGui.TextWrapped("祝您享受游戏和 Dalamud 的时光！");
+                        ImGui.TextWrapped("如果你注意到任何问题或需要帮助，请查看常见问题解答，并在需要帮助的情况下在我们的QQ频道上联系我们。");
+                        ImGui.TextWrapped("祝你享受游戏和 Dalamud 的时光！");
                         
                         ImGuiHelpers.ScaledDummy(45);
                         

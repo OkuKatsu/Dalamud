@@ -542,7 +542,7 @@ internal class PluginCategoryManager
 
         public static string Category_All => Loc.Localize("InstallerCategoryAll", "All");
 
-        public static string Category_IsTesting => Loc.Localize("InstallerCategoryIsTesting", "Currently Testing");
+        public static string Category_IsTesting => "测试版";
 
         public static string Category_AvailableForTesting => Loc.Localize("InstallerCategoryAvailableForTesting", "Testing Available");
 
@@ -554,7 +554,7 @@ internal class PluginCategoryManager
 
         public static string Category_PluginProfiles => Loc.Localize("InstallerCategoryPluginProfiles", "Plugin Collections");
 
-        public static string Category_UpdateablePlugins => Loc.Localize("InstallerCategoryCanBeUpdated", "Can be updated");
+        public static string Category_UpdateablePlugins => "可更新";
         
         public static string Category_Other => Loc.Localize("InstallerCategoryOther", "Other");
 

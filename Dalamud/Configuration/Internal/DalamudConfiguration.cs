@@ -62,6 +62,8 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// </summary>
     public event DalamudConfigurationSavedDelegate? DalamudConfigurationSaved;
 
+    public string MainRepoUrl { get; set; } = "https://aonyx.ffxiv.wang/Plugin/PluginMaster?apiLevel=11";
+    
     /// <summary>
     /// Gets or sets a list of muted words.
     /// </summary>

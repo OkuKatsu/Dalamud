@@ -50,7 +50,6 @@ internal class SettingsWindow : Window
             new SettingsTabAutoUpdates(),
             new SettingsTabDtr(),
             new SettingsTabExperimental(),
-            new SettingsTabAbout()
         ];
     }
 
@@ -250,7 +249,7 @@ internal class SettingsWindow : Window
 
         ImGui.SetCursorPos(new Vector2(windowSize.X - 250, ImGui.GetTextLineHeightWithSpacing() + (ImGui.GetStyle().FramePadding.Y * 2)));
         ImGui.SetNextItemWidth(240);
-        ImGui.InputTextWithHint("###searchInput", "Search for settings...", ref this.searchInput, 100);
+        ImGui.InputTextWithHint("###searchInput", "搜索设置...", ref this.searchInput, 100);
     }
 
     private void Save()

@@ -62,20 +62,20 @@ public class SettingsTabExperimental : SettingsTab
         new SettingsEntry<bool>(
             Loc.Localize(
                 "DalamudSettingEnableImGuiAsserts",
-                "Enable ImGui asserts"),
+                "启用 ImGui 断言"),
             Loc.Localize(
                 "DalamudSettingEnableImGuiAssertsHint",
-                "If this setting is enabled, a window containing further details will be shown when an internal assertion in ImGui fails.\nWe recommend enabling this when developing plugins."),
+                "启用后, 当 ImGui 出现内部断言失败时, 将会弹出一个包含相关详细信息的窗口\n如果你并非开发者, 请勿启用本项"),
             c => Service<InterfaceManager>.Get().ShowAsserts,
             (v, _) => Service<InterfaceManager>.Get().ShowAsserts = v),
 
         new SettingsEntry<bool>(
             Loc.Localize(
                 "DalamudSettingEnableImGuiAssertsAtStartup",
-                "Always enable ImGui asserts at startup"),
+                "总是在 Dalamud 注入时启用 ImGui 断言"),
             Loc.Localize(
                 "DalamudSettingEnableImGuiAssertsAtStartupHint",
-                "This will enable ImGui asserts every time the game starts."),
+                "启用后, 每当 Dalamud 注入游戏时, 都会启用 ImGui 断言"),
             c => c.ImGuiAssertsEnabledAtStartup ?? false,
             (v, c) => c.ImGuiAssertsEnabledAtStartup = v),
 
@@ -86,10 +86,10 @@ public class SettingsTabExperimental : SettingsTab
         new GapSettingsEntry(5, true),
 
         new EnumSettingsEntry<ReShadeHandlingMode>(
-            Loc.Localize("DalamudSettingsReShadeHandlingMode", "ReShade handling mode"),
+            Loc.Localize("DalamudSettingsReShadeHandlingMode", "ReShade 处理模式"),
             Loc.Localize(
                 "DalamudSettingsReShadeHandlingModeHint",
-                "You may try different options to work around problems you may encounter.\nRestart is required for changes to take effect."),
+                "当你遇到与 ReShade 相关的问题时，可以选择以下不同选项来尝试解决问题\n注：所有选项需重启游戏后生效"),
             c => c.ReShadeHandlingMode,
             (v, c) => c.ReShadeHandlingMode = v,
             fallbackValue: ReShadeHandlingMode.Default,
@@ -99,15 +99,15 @@ public class SettingsTabExperimental : SettingsTab
                 warning += rshm is ReShadeHandlingMode.UnwrapReShade or ReShadeHandlingMode.None ||
                            Service<DalamudConfiguration>.Get().SwapChainHookMode == SwapChainHelper.HookMode.ByteCode
                                ? string.Empty
-                               : "Current option will be ignored and no special ReShade handling will be done, because SwapChain vtable hook mode is set.";
+                               : "当前选项将被忽略且不会执行特殊 ReShade 处理，因为已启用 SwapChain vtable Hook 模式。";
 
                 if (ReShadeAddonInterface.ReShadeIsSignedByReShade)
                 {
                     warning += warning.Length > 0 ? "\n" : string.Empty;
                     warning += Loc.Localize(
                         "ReShadeNoAddonSupportNotificationContent",
-                        "Your installation of ReShade does not have full addon support, and may not work with Dalamud and/or the game.\n" +
-                        "Download and install ReShade with full addon-support.");
+                        "你安装的 ReShade 版本不支持完整 Addon 功能，可能与 Dalamud 或游戏存在兼容性问题\n" +
+                        "请下载并安装支持完整 Addon 功能的 ReShade 版本");
                 }
 
                 return warning.Length > 0 ? warning : null;
@@ -115,13 +115,13 @@ public class SettingsTabExperimental : SettingsTab
         {
             FriendlyEnumNameGetter = x => x switch
             {
-                ReShadeHandlingMode.Default => "Default",
-                ReShadeHandlingMode.UnwrapReShade => "Unwrap",
-                ReShadeHandlingMode.ReShadeAddonPresent => "ReShade Addon (present)",
-                ReShadeHandlingMode.ReShadeAddonReShadeOverlay => "ReShade Addon (reshade_overlay)",
+                ReShadeHandlingMode.Default                           => "默认模式",
+                ReShadeHandlingMode.UnwrapReShade                     => "解包模式",
+                ReShadeHandlingMode.ReShadeAddonPresent               => "ReShade Addon（当前状态）",
+                ReShadeHandlingMode.ReShadeAddonReShadeOverlay        => "ReShade Addon（reshade_overlay）",
                 ReShadeHandlingMode.HookReShadeDxgiSwapChainOnPresent => "Hook ReShade::DXGISwapChain::OnPresent",
-                ReShadeHandlingMode.None => "Do not handle",
-                _ => "<invalid>",
+                ReShadeHandlingMode.None                              => "不处理",
+                _                                                     => "<无效值>",
             },
         },
 
