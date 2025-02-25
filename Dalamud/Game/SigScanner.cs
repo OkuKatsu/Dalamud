@@ -513,11 +513,13 @@ public class SigScanner : IDisposable, ISigScanner
     {
         // .text
         this.moduleCopyPtr = Marshal.AllocHGlobal(this.Module.ModuleMemorySize);
-        Buffer.MemoryCopy(
-            this.Module.BaseAddress.ToPointer(),
-            this.moduleCopyPtr.ToPointer(),
-            this.Module.ModuleMemorySize,
-            this.Module.ModuleMemorySize);
+
+        fixed (byte* bytes = File.ReadAllBytes(Module.FileName))
+            Buffer.MemoryCopy(
+                bytes,
+                this.moduleCopyPtr.ToPointer(),
+                this.Module.ModuleMemorySize,
+                this.Module.ModuleMemorySize);
 
         this.moduleCopyOffset = this.moduleCopyPtr - this.Module.BaseAddress;
     }
