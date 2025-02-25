@@ -839,9 +839,6 @@ internal class PluginManager : IInternalDisposableService
     /// <param name="plugin">Plugin to remove.</param>
     public void RemovePlugin(LocalPlugin plugin)
     {
-        if (plugin.State != PluginState.Unloaded && plugin.HasEverStartedLoad)
-            throw new InvalidPluginOperationException($"Unable to remove {plugin.Name}, not unloaded and had loaded before");
-
         lock (this.pluginListLock)
         {
             this.installedPluginsList.Remove(plugin);

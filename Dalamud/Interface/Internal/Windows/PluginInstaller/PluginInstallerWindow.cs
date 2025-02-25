@@ -3493,11 +3493,9 @@ internal class PluginInstallerWindow : Window, IDisposable
             return;*/
 
         var pluginManager = Service<PluginManager>.Get();
-
-        var devNotDeletable = plugin.IsDev && plugin.State != PluginState.Unloaded && plugin.State != PluginState.DependencyResolutionFailed;
-
+        
         ImGui.SameLine();
-        if (plugin.State == PluginState.Loaded || devNotDeletable)
+        if (plugin.State == PluginState.Loaded)
         {
             ImGui.PushFont(InterfaceManager.IconFont);
             ImGuiComponents.DisabledButton(FontAwesomeIcon.TrashAlt.ToIconString());
@@ -3523,10 +3521,6 @@ internal class PluginInstallerWindow : Window, IDisposable
                     else
                     {
                         plugin.ScheduleDeletion(!plugin.Manifest.ScheduledForDeletion);
-                    }
-
-                    if (plugin.State is PluginState.Unloaded or PluginState.DependencyResolutionFailed)
-                    {
                         pluginManager.RemovePlugin(plugin);
                     }
                 }
