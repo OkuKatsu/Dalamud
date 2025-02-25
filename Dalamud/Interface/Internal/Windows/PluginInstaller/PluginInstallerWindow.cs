@@ -3665,9 +3665,9 @@ internal class PluginInstallerWindow : Window, IDisposable
     private bool IsManifestFiltered(IPluginManifest manifest)
     {
         var hasSearchString = !string.IsNullOrWhiteSpace(this.searchText);
-        var oldApi = (manifest.TestingDalamudApiLevel == null
-                            || manifest.TestingDalamudApiLevel < PluginManager.DalamudApiLevel)
-                          && manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
+        var oldApi = (manifest.TestingDalamudApiLevel    == null
+                      || manifest.TestingDalamudApiLevel < PluginManager.DalamudApiLevel)
+                     && manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
         var installed = this.IsManifestInstalled(manifest).IsInstalled;
 
         if (oldApi && !hasSearchString && !installed)
@@ -3676,27 +3676,65 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (!hasSearchString)
             return false;
 
-        return this.GetManifestSearchScore(manifest) < 1;
+        return GetManifestSearchScore(manifest) < 100;
     }
 
     private int GetManifestSearchScore(IPluginManifest manifest)
     {
-        var searchString = this.searchText.ToLowerInvariant();
-        var matcher = new FuzzyMatcher(searchString, MatchMode.FuzzyParts);
-        var scores = new List<int> { 0 };
+        if (string.IsNullOrWhiteSpace(this.searchText))
+            return 0;
 
-        if (!manifest.Name.IsNullOrEmpty())
-            scores.Add(matcher.Matches(manifest.Name.ToLowerInvariant()) * 110);
-        if (!manifest.InternalName.IsNullOrEmpty())
-            scores.Add(matcher.Matches(manifest.InternalName.ToLowerInvariant()) * 105);
-        if (!manifest.Author.IsNullOrEmpty())
-            scores.Add(matcher.Matches(manifest.Author.ToLowerInvariant()) * 100);
-        if (!manifest.Punchline.IsNullOrEmpty())
-            scores.Add(matcher.Matches(manifest.Punchline.ToLowerInvariant()) * 100);
+        var searchQuery = this.searchText.Trim().ToLowerInvariant();
+        var searchTerms = searchQuery.Split([' '], StringSplitOptions.RemoveEmptyEntries);
+
+        if (searchTerms.Length == 0) return 0;
+
+        var totalScore = 0;
+
+        totalScore += CalculateMatchScore(searchTerms, manifest.Name,         weight: 200);
+        totalScore += CalculateMatchScore(searchTerms, manifest.InternalName, weight: 180);
+
+        totalScore += CalculateMatchScore(searchTerms, manifest.Author,    weight: 150);
+        totalScore += CalculateMatchScore(searchTerms, manifest.Punchline, weight: 120);
+
         if (manifest.Tags != null)
-            scores.Add(matcher.MatchesAny(manifest.Tags.ToArray()) * 100);
+        {
+            foreach (var tag in manifest.Tags)
+                totalScore += CalculateMatchScore(searchTerms, tag, weight: 100);
+        }
 
-        return scores.Max();
+        if (totalScore == 0) return -100;
+        return totalScore;
+    }
+
+    private int CalculateMatchScore(string[] searchTerms, string? target, int weight, bool requireFullMatch = false)
+    {
+        if (string.IsNullOrWhiteSpace(target))
+            return 0;
+
+        var targetLower = target.Trim().ToLowerInvariant();
+        var score       = 0;
+
+        foreach (var term in searchTerms)
+        {
+            if (requireFullMatch)
+            {
+                if (targetLower.Equals(term))
+                    score += weight;
+            }
+            else
+            {
+                if (targetLower.StartsWith(term))
+                    score += (int)(weight * 1.2);
+                else if (targetLower.Contains(term))
+                    score += weight;
+            }
+        }
+
+        if (searchTerms.Any(term => term.Length >= 4 && targetLower.Contains(term)))
+            score += 50;
+
+        return score;
     }
 
     private (bool IsInstalled, LocalPlugin Plugin) IsManifestInstalled(IPluginManifest? manifest)
@@ -3949,7 +3987,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         #region SortBy
 
-        public static string SortBy_SearchScore => Loc.Localize("InstallerSearchScore", "Search score");
+        public static string SortBy_SearchScore => "搜索权重";
 
         public static string SortBy_Alphabetical => Loc.Localize("InstallerAlphabetical", "Alphabetical");
 
