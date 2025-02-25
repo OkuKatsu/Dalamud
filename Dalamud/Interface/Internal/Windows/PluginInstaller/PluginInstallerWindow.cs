@@ -149,11 +149,9 @@ internal class PluginInstallerWindow : Window, IDisposable
     /// <param name="imageCache">An instance of <see cref="PluginImageCache"/> class.</param>
     /// <param name="configuration">An instance of <see cref="DalamudConfiguration"/>.</param>
     public PluginInstallerWindow(PluginImageCache imageCache, DalamudConfiguration configuration)
-        : base(
-            Locs.WindowTitle + (configuration.DoPluginTest ? Locs.WindowTitleMod_Testing : string.Empty) + "###XlPluginInstaller",
-            ImGuiWindowFlags.NoScrollbar)
+        : base("插件安装器###XlPluginInstaller", ImGuiWindowFlags.NoScrollbar)
     {
-        this.pluginListInstalled = new List<LocalPlugin>();
+        this.pluginListInstalled = [];
         this.IsOpen              = true;
         this.imageCache          = imageCache;
 
@@ -164,7 +162,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             MinimumSize = this.Size.Value,
         };
-
+        
         Service<PluginManager>.GetAsync().ContinueWith(pluginManagerTask =>
         {
             var pluginManager = pluginManagerTask.Result;
@@ -1317,7 +1315,16 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
 
         // Filter out plugins that are not hidden
-        proxies = proxies.Where(IsProxyHidden).ToList();
+        proxies = proxies.Where(IsProxyHidden)
+                         .OrderBy(x =>
+                         {
+                             if (x.LocalPlugin != null)
+                                 return x.LocalPlugin.Manifest.InstalledFromUrl;
+                             if (x.RemoteManifest != null)
+                                 return x.RemoteManifest.SourceRepo.PluginMasterUrl;
+                             return string.Empty;
+                         })
+                         .ToList();
 
         return proxies;
     }
@@ -1326,22 +1333,41 @@ internal class PluginInstallerWindow : Window, IDisposable
     private void DrawAvailablePluginList()
     {
         var i = 0;
+        var lastRepoUrl = string.Empty;
         foreach (var proxy in this.GatherProxies())
         {
             IPluginManifest applicableManifest = proxy.LocalPlugin != null ? proxy.LocalPlugin.Manifest : proxy.RemoteManifest;
 
             if (applicableManifest == null)
                 throw new Exception("Could not determine manifest for available plugin");
-
+            
             ImGui.PushID($"{applicableManifest.InternalName}{applicableManifest.AssemblyVersion}");
-
+            
             if (proxy.LocalPlugin != null)
             {
+                if (!proxy.LocalPlugin.IsDev && lastRepoUrl != proxy.LocalPlugin.Manifest.InstalledFromUrl)
+                {
+                    lastRepoUrl = proxy.LocalPlugin.Manifest.InstalledFromUrl;
+
+                    using (ImRaii.Disabled())
+                        ImGui.Button($"{lastRepoUrl}",
+                                     new(ImGui.GetContentRegionAvail().X, 40f + ImGui.GetTextLineHeightWithSpacing()));
+                }
+
                 var update = this.pluginListUpdatable.FirstOrDefault(up => up.InstalledPlugin == proxy.LocalPlugin);
                 this.DrawInstalledPlugin(proxy.LocalPlugin, i++, proxy.RemoteManifest, update);
             }
             else if (proxy.RemoteManifest != null)
             {
+                if (lastRepoUrl != proxy.RemoteManifest.SourceRepo.PluginMasterUrl)
+                {
+                    lastRepoUrl = proxy.RemoteManifest.SourceRepo.PluginMasterUrl;
+
+                    using (ImRaii.Disabled())
+                        ImGui.Button($"{lastRepoUrl}",
+                                     new(ImGui.GetContentRegionAvail().X, 40f + ImGui.GetTextLineHeightWithSpacing()));
+                }
+                
                 this.DrawAvailablePlugin(proxy.RemoteManifest, i++);
             }
 
@@ -1368,6 +1394,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         var filteredList = pluginList
                            .Where(plugin => !this.IsManifestFiltered(plugin.Manifest))
+                           .OrderBy(x => !x.IsDev ? x.Manifest.InstalledFromUrl : string.Empty)
                            .ToList();
 
         if (filteredList.Count == 0)
@@ -1378,6 +1405,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         var drewAny = false;
         var i = 0;
+        var lastRepoUrl = string.Empty;
         foreach (var plugin in filteredList)
         {
             if (filter == InstalledPluginListFilter.Testing && !manager.HasTestingOptIn(plugin.Manifest))
@@ -1401,6 +1429,15 @@ internal class PluginInstallerWindow : Window, IDisposable
             else if (!plugin.IsDev)
             {
                 continue;
+            }
+            
+            if (remoteManifest != null && lastRepoUrl != remoteManifest.SourceRepo.PluginMasterUrl)
+            {
+                lastRepoUrl = remoteManifest.SourceRepo.PluginMasterUrl;
+
+                using (ImRaii.Disabled())
+                    ImGui.Button($"{lastRepoUrl}",
+                                 new(ImGui.GetContentRegionAvail().X, 40f + ImGui.GetTextLineHeightWithSpacing()));
             }
 
             this.DrawInstalledPlugin(plugin, i++, remoteManifest, update);
@@ -2155,20 +2192,11 @@ internal class PluginInstallerWindow : Window, IDisposable
             var devIconColor = KnownColor.MediumOrchid.Vector();
 
             if (plugin is LocalDevPlugin)
-            {
                 this.DrawFontawesomeIconOutlined(FontAwesomeIcon.Wrench, devIconOutlineColor, devIconColor);
-                this.VerifiedCheckmarkFadeTooltip(label, "This is a dev plugin. You added it.");
-            }
             else if (!flags.HasFlag(PluginHeaderFlags.IsThirdParty))
-            {
                 this.DrawFontawesomeIconOutlined(FontAwesomeIcon.CheckCircle, verifiedOutlineColor, verifiedIconColor);
-                this.VerifiedCheckmarkFadeTooltip(label, Locs.VerifiedCheckmark_VerifiedTooltip);
-            }
             else
-            {
                 this.DrawFontawesomeIconOutlined(FontAwesomeIcon.ExclamationCircle, unverifiedOutlineColor, unverifiedIconColor);
-                this.VerifiedCheckmarkFadeTooltip(label, Locs.VerifiedCheckmark_UnverifiedTooltip);
-            }
         }
 
         // Download count
@@ -2412,13 +2440,10 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.Indent();
 
             // Installable from
-            if (manifest.SourceRepo.IsThirdParty)
-            {
-                var repoText = Locs.PluginBody_Plugin3rdPartyRepo(manifest.SourceRepo.PluginMasterUrl);
-                ImGui.TextColored(ImGuiColors.DalamudGrey3, repoText);
+            var repoText = Locs.PluginBody_Plugin3rdPartyRepo(manifest.SourceRepo.PluginMasterUrl);
+            ImGui.TextColored(ImGuiColors.DalamudGrey3, repoText);
 
-                ImGuiHelpers.ScaledDummy(2);
-            }
+            ImGuiHelpers.ScaledDummy(2);
 
             // Description
             if (!string.IsNullOrWhiteSpace(manifest.Description))
@@ -2568,12 +2593,6 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         // Name
         var label = plugin.Manifest.Name;
-
-        // Dev
-        if (plugin.IsDev)
-        {
-            label += Locs.PluginTitleMod_DevPlugin;
-        }
 
         // Testing
         if (plugin.IsTesting)
@@ -2754,7 +2773,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 var fileText = Locs.PluginBody_DevPluginPath(plugin.DllFile.FullName);
                 ImGui.TextColored(ImGuiColors.DalamudGrey3, fileText);
             }
-            else if (isThirdParty)
+            else
             {
                 var repoText = Locs.PluginBody_Plugin3rdPartyRepo(manifest.InstalledFromUrl);
                 ImGui.TextColored(ImGuiColors.DalamudGrey3, repoText);
@@ -4332,20 +4351,6 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string Profiles_RemoveFromAll =>
             Loc.Localize("InstallerProfilesRemoveFromAll", "Remove from all collections");
-
-        #endregion
-
-        #region VerifiedCheckmark
-
-        public static string VerifiedCheckmark_VerifiedTooltip =>
-            Loc.Localize("VerifiedCheckmarkVerifiedTooltip", "This plugin has been reviewed by the Dalamud team.\n" +
-                                                             "It follows our technical and safety criteria, and adheres to our guidelines.");
-
-        public static string VerifiedCheckmark_UnverifiedTooltip =>
-            Loc.Localize("VerifiedCheckmarkUnverifiedTooltip", "This plugin has not been reviewed by the Dalamud team.\n" +
-                                                               "We cannot take any responsibility for custom plugins and repositories.\n" +
-                                                               "Please make absolutely sure that you only install plugins from developers you trust.\n\n" +
-                                                               "You will not receive support for plugins installed from custom repositories on the XIVLauncher & Dalamud server.");
 
         #endregion
     }

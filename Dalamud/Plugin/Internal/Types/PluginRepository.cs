@@ -113,10 +113,8 @@ internal class PluginRepository
     /// </summary>
     /// <param name="happyHttpClient">An instance of <see cref="HappyHttpClient" />.</param>
     /// <returns>The new instance of main repository.</returns>
-    public static PluginRepository CreateMainRepo(HappyHttpClient happyHttpClient)
-    {
-        return new PluginRepository(happyHttpClient, MainRepoUrl, true);
-    }
+    public static PluginRepository CreateMainRepo(HappyHttpClient happyHttpClient) 
+        => new(happyHttpClient, MainRepoUrl, true);
 
     /// <summary>
     ///     Reload the plugin master asynchronously in a task.

@@ -543,30 +543,18 @@ internal class PluginManager : IInternalDisposableService
             {
                 // Manifests are now required for devPlugins
                 var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
-                if (!manifestFile.Exists)
-                {
-                    Log.Error("DLL at {DllPath} has no manifest, this is no longer valid", dllFile.FullName);
-                    continue;
-                }
+                if (!manifestFile.Exists) continue;
 
                 var manifest = LocalPluginManifest.Load(manifestFile);
-                if (manifest == null)
-                {
-                    Log.Error("Could not deserialize manifest for DLL at {DllPath}", dllFile.FullName);
-                    continue;
-                }
+                if (manifest == null) continue;
 
-                if (manifest != null && manifest.InternalName.IsNullOrEmpty())
-                {
-                    Log.Error("InternalName for dll at {Path} was null", manifestFile.FullName);
-                    continue;
-                }
+                if (manifest != null && manifest.InternalName.IsNullOrEmpty()) continue;
 
                 devPluginDefs.Add(new PluginDef(dllFile, manifest, true));
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Could not load manifest for dev at {Directory}", dllFile.FullName);
+                Log.Error(ex, "无法加载 {Directory} 处的开发版插件", dllFile.FullName);
             }
         }
 
@@ -730,10 +718,7 @@ internal class PluginManager : IInternalDisposableService
 
         try
         {
-            Debug.Assert(!this.Repos.First().IsThirdParty, "First repository should be main repository");
-            await this.Repos.First().ReloadPluginMasterAsync(skipCache); // Load official repo first
-
-            await Task.WhenAll(this.Repos.Skip(1).Select(repo => repo.ReloadPluginMasterAsync(skipCache)));
+            await Task.WhenAll(this.Repos.Select(repo => repo.ReloadPluginMasterAsync(skipCache)));
 
             Log.Information("PluginMasters reloaded, now refiltering...");
 
@@ -806,18 +791,10 @@ internal class PluginManager : IInternalDisposableService
 
             // Manifests are now required for devPlugins
             var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
-            if (!manifestFile.Exists)
-            {
-                Log.Error("DLL at {DllPath} has no manifest, this is no longer valid", dllFile.FullName);
-                continue;
-            }
+            if (!manifestFile.Exists) continue;
 
             var manifest = LocalPluginManifest.Load(manifestFile);
-            if (manifest == null)
-            {
-                Log.Error("Could not deserialize manifest for DLL at {DllPath}", dllFile.FullName);
-                continue;
-            }
+            if (manifest == null) continue;
 
             try
             {

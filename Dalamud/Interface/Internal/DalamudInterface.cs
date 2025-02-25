@@ -750,7 +750,7 @@ internal class DalamudInterface : IInternalDisposableService
                         this.OpenChangelogWindow();
                     }
 
-                    if (ImGui.MenuItem("预设 ImGui 组件预览"))
+                    if (ImGui.MenuItem("预设 ImGui 组件"))
                     {
                         this.OpenComponentDemoWindow();
                     }
