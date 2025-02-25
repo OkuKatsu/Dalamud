@@ -1431,7 +1431,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 continue;
             }
             
-            if (remoteManifest != null && lastRepoUrl != remoteManifest.SourceRepo.PluginMasterUrl)
+            if (!plugin.IsDev && remoteManifest != null && lastRepoUrl != remoteManifest.SourceRepo.PluginMasterUrl)
             {
                 lastRepoUrl = remoteManifest.SourceRepo.PluginMasterUrl;
 
