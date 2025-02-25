@@ -10,6 +10,7 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Networking.Http;
+using Dalamud.Utility;
 
 using ImGuiNET;
 using Newtonsoft.Json;
