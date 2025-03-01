@@ -6,11 +6,12 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
-
 using Iced.Intel;
 using Newtonsoft.Json;
 using Serilog;
+using Decoder = Iced.Intel.Decoder;
 
 namespace Dalamud.Game;
 
@@ -514,33 +515,75 @@ public class SigScanner : IDisposable, ISigScanner
         // .text
         this.moduleCopyPtr = Marshal.AllocHGlobal(this.Module.ModuleMemorySize);
 
-        fixed (byte* bytes = File.ReadAllBytes(Module.FileName))
-            Buffer.MemoryCopy(
-                bytes,
-                this.moduleCopyPtr.ToPointer(),
-                this.Module.ModuleMemorySize,
-                this.Module.ModuleMemorySize);
+        Buffer.MemoryCopy(Module.BaseAddress.ToPointer(),
+                          moduleCopyPtr.ToPointer(),
+                          Module.ModuleMemorySize,
+                          Module.ModuleMemorySize);
 
-        this.moduleCopyOffset = this.moduleCopyPtr - this.Module.BaseAddress;
+        moduleCopyOffset = moduleCopyPtr - Module.BaseAddress;
+
+        var fileBytes = File.ReadAllBytes(Module.FileName);
+
+        using var stream = new FileStream(Module.FileName, FileMode.Open, FileAccess.Read);
+
+        using var reader = new BinaryReader(stream);
+        stream.Seek(0x3C, SeekOrigin.Begin);
+
+        var ntNewOffset = reader.ReadInt32();
+        stream.Seek(ntNewOffset + 6, SeekOrigin.Begin);
+
+        var numberOfSections = reader.ReadInt16();
+        stream.Seek(16, SeekOrigin.Current);
+
+        var optionalHeaderStart = stream.Position;
+
+        stream.Seek(optionalHeaderStart + 240, SeekOrigin.Begin);
+
+        for (var i = 0; i < numberOfSections; i++)
+        {
+            var nameBytes     = reader.ReadBytes(8);
+            var sectionName   = Encoding.ASCII.GetString(nameBytes).TrimEnd('\0');
+            var virtualSize   = reader.ReadInt32();
+            var virtualAddr   = reader.ReadInt32();
+            var sizeOfRawData = reader.ReadInt32();
+            var pointerToRaw  = reader.ReadInt32();
+
+            var originalPosition = stream.Position;
+
+            if (sectionName == ".text")
+            {
+                stream.Seek(pointerToRaw, SeekOrigin.Begin);
+
+                Marshal.Copy(fileBytes.AsSpan(pointerToRaw, virtualSize).ToArray(),
+                             0,
+                             moduleCopyPtr + virtualAddr,
+                             virtualSize);
+
+                return;
+            }
+
+            stream.Seek(originalPosition + 16, SeekOrigin.Begin);
+        }
     }
 
     private void Load()
     {
-        if (this.cacheFile is not { Exists: true })
+        if (cacheFile is not { Exists: true })
         {
-            this.textCache = new();
+            textCache = new ();
+
             return;
         }
 
         try
         {
-            this.textCache =
-                JsonConvert.DeserializeObject<ConcurrentDictionary<string, long>>(
-                    File.ReadAllText(this.cacheFile.FullName)) ?? new ConcurrentDictionary<string, long>();
+            textCache =
+                JsonConvert.DeserializeObject<ConcurrentDictionary<string, long>>(File.ReadAllText(cacheFile.FullName))
+                ?? new ConcurrentDictionary<string, long>();
         }
         catch (Exception ex)
         {
-            this.textCache = new ConcurrentDictionary<string, long>();
+            textCache = new ();
             Log.Error(ex, "Couldn't load cached sigs");
         }
     }
