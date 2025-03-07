@@ -615,15 +615,11 @@ internal class PluginInstallerWindow : Window, IDisposable
     private void DrawHeader()
     {
         var style = ImGui.GetStyle();
-        var windowSize = ImGui.GetWindowContentRegionMax();
 
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() - (5 * ImGuiHelpers.GlobalScale));
 
-        var searchInputWidth = 180 * ImGuiHelpers.GlobalScale;
         var searchClearButtonWidth = 25 * ImGuiHelpers.GlobalScale;
 
-        var sortByText = Locs.SortBy_Label;
-        var sortByTextWidth = ImGui.CalcTextSize(sortByText).X;
         var sortSelectables = new (string Localization, PluginSortKind SortKind)[]
         {
             (Locs.SortBy_SearchScore, PluginSortKind.SearchScore),
@@ -637,19 +633,6 @@ internal class PluginInstallerWindow : Window, IDisposable
         };
         var longestSelectableWidth = sortSelectables.Select(t => ImGui.CalcTextSize(t.Localization).X).Max();
         var selectableWidth = longestSelectableWidth + (style.FramePadding.X * 2);  // This does not include the label
-        var sortSelectWidth = selectableWidth + sortByTextWidth + style.ItemInnerSpacing.X;  // Item spacing between the selectable and the label
-
-        var headerText = Locs.Header_Hint;
-        var headerTextSize = ImGui.CalcTextSize(headerText);
-        ImGui.Text(headerText);
-
-        ImGui.SameLine();
-
-        // Shift down a little to align with the middle of the header text
-        var downShift = ImGui.GetCursorPosY() + (headerTextSize.Y / 4) - 2;
-        ImGui.SetCursorPosY(downShift);
-
-        ImGui.SetCursorPosX(windowSize.X - sortSelectWidth - (style.ItemSpacing.X * 2) - searchInputWidth - searchClearButtonWidth);
 
         var isProfileManager =
             this.categoryManager.CurrentGroupKind == PluginCategoryManager.GroupKind.Installed &&
@@ -658,24 +641,10 @@ internal class PluginInstallerWindow : Window, IDisposable
         // Disable search if profile editor
         using (ImRaii.Disabled(isProfileManager))
         {
-            var currentMainRepo = PluginRepository.MainRepoUrl switch
-            {
-                PluginRepository.MainRepoUrlGlobal => "国际服",
-                PluginRepository.MainRepoUrlCN     => "国服",
-                _                                  => "未知"
-            };
-            
-            ImGui.AlignTextToFramePadding();
-            ImGui.Text($"当前主库: {currentMainRepo}");
-            
-            if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("你可以在 Dalamud 设置 - 基本配置 中切换想要使用的默认主库\n底部按钮仅用于当次游戏临时切换");
-            
             var searchTextChanged = false;
             var prevSearchText = this.searchText;
             ImGui.SameLine();
-            ImGui.SetCursorPosY(downShift);
-            ImGui.SetNextItemWidth(searchInputWidth);
+            ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - selectableWidth - searchClearButtonWidth);
             searchTextChanged |= ImGui.InputTextWithHint(
                 "###XlPluginInstaller_Search",
                 Locs.Header_SearchPlaceholder,
@@ -684,8 +653,6 @@ internal class PluginInstallerWindow : Window, IDisposable
                 ImGuiInputTextFlags.AutoSelectAll);
 
             ImGui.SameLine();
-            ImGui.SetCursorPosY(downShift);
-
             ImGui.SetNextItemWidth(searchClearButtonWidth);
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Times))
             {
@@ -723,9 +690,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         using (ImRaii.Disabled(this.categoryManager.CurrentGroupKind == PluginCategoryManager.GroupKind.Changelog || isProfileManager))
         {
             ImGui.SameLine();
-            ImGui.SetCursorPosY(downShift);
             ImGui.SetNextItemWidth(selectableWidth);
-            if (ImGui.BeginCombo(sortByText, this.filterText, ImGuiComboFlags.NoArrowButton))
+            if (ImGui.BeginCombo("###SortBy", this.filterText, ImGuiComboFlags.NoArrowButton))
             {
                 foreach (var selectable in sortSelectables)
                 {
