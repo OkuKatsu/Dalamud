@@ -3499,8 +3499,9 @@ internal class PluginInstallerWindow : Window, IDisposable
                     else
                     {
                         plugin.ScheduleDeletion(!plugin.Manifest.ScheduledForDeletion);
-                        pluginManager.RemovePlugin(plugin);
                     }
+                    
+                    pluginManager.RemovePlugin(plugin);
                 }
                 catch (Exception ex)
                 {
