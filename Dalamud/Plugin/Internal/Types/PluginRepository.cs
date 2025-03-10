@@ -77,7 +77,8 @@ internal class PluginRepository
                 }
             }
         };
-        this.httpClient.DefaultRequestHeaders.Add("X-Machine-Token", DeviceUtils.GetDeviceId());
+
+        this.httpClient.DefaultRequestHeaders.Add("X-Machine-Token", HappyHttpClient.randomMachineCode.Value);
         PluginMasterUrl = pluginMasterUrl;
         IsThirdParty    = pluginMasterUrl != MainRepoUrl;
         IsEnabled       = isEnabled;
