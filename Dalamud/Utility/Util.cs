@@ -82,7 +82,7 @@ public static class Util
     /// <summary>
     /// Gets the assembly version of Dalamud.
     /// </summary>
-    public static string AssemblyVersion => string.IsNullOrWhiteSpace(assemblyVersion) ? "11.0.0.4" : assemblyVersion;
+    public static string AssemblyVersion => string.IsNullOrWhiteSpace(assemblyVersion) ? "11.0.0.5" : assemblyVersion;
 
     private static string? assemblyVersion;
     
