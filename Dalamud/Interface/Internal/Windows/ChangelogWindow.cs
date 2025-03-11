@@ -471,7 +471,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
                         break;
                     
                     case State.Links:
-                        ImGui.TextWrapped("如果你注意到任何问题或需要帮助，请查看常见问题解答，并在需要帮助的情况下在我们的QQ频道上联系我们。");
+                        ImGui.TextWrapped("如果你注意到任何问题或需要帮助，请查看常见问题解答，并在需要帮助的情况下在我们的Discord上联系我们。");
                         ImGui.TextWrapped("祝你享受游戏和 Dalamud 的时光！");
                         
                         ImGuiHelpers.ScaledDummy(45);
@@ -494,7 +494,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
                         
                         ImGuiHelpers.CenterCursorFor(
                             (int)(ImGuiComponents.GetIconButtonWithTextWidth(FontAwesomeIcon.Globe, "查看 FAQ") +
-                            ImGuiComponents.GetIconButtonWithTextWidth(FontAwesomeIcon.LaughBeam, "加入我们的QQ频道") +
+                            ImGuiComponents.GetIconButtonWithTextWidth(FontAwesomeIcon.LaughBeam, "加入我们的Discord") +
                             (5 * ImGuiHelpers.GlobalScale) + 
                             (ImGui.GetStyle().ItemSpacing.X * 4)));
                         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Globe, "查看 FAQ"))
@@ -506,16 +506,16 @@ internal sealed class ChangelogWindow : Window, IDisposable
                         ImGuiHelpers.ScaledDummy(5);
                         ImGui.SameLine();
                         
-                        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.LaughBeam, "加入我们的QQ频道"))
+                        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.LaughBeam, "加入我们的Discord"))
                         {
-                            Util.OpenLink("https://pd.qq.com/s/9ehyfcha3");
+                            Util.OpenLink("https://discord.gg/cbDd9b2tbg");
                         }
                         
                         ImGuiHelpers.ScaledDummy(5);
                         
                         if (CenteredIconButton(FontAwesomeIcon.Heart, "支持我们"))
                         {
-                            Util.OpenLink("https://ottercorp.github.io/faq/support");
+                            Util.OpenLink("https://info.atmoomen.top/");
                         }
                         
                         var buttonHeight = 30 * ImGuiHelpers.GlobalScale;
