@@ -499,7 +499,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
                             (ImGui.GetStyle().ItemSpacing.X * 4)));
                         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Globe, "查看 FAQ"))
                         {
-                            Util.OpenLink("https://ottercorp.github.io/faq/");
+                            Util.OpenLink("https://info.atmoomen.top/");
                         }
                         
                         ImGui.SameLine();
