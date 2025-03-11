@@ -45,8 +45,7 @@ internal class PluginImageCache : IInternalDisposableService
     /// </summary>
     public const int PluginIconHeight = 512;
 
-    private const string MainRepoImageUrl = "https://raw.githubusercontent.com/ottercorp/DalamudPlugins/api6/{0}/{1}/images/{2}";
-    private const string MainRepoDip17ImageUrl = "https://raw.githubusercontent.com/ottercorp/PluginDistD17/main/{0}/{1}/images/{2}";
+    private const string MainRepoDip17ImageUrl = "https://gh.atmoomen.top/https://raw.githubusercontent.com/Dalamud-DailyRoutines/PluginDistD17/main/{0}/{1}/images/{2}";
 
     [ServiceManager.ServiceDependency]
     private readonly HappyHttpClient happyHttpClient = Service<HappyHttpClient>.Get();

@@ -81,7 +81,7 @@ public class ProxySettingsEntry : SettingsEntry
                     }
                     var httpClient = new HttpClient(handler);
                     httpClient.Timeout = TimeSpan.FromSeconds(3);
-                    _ = await httpClient.GetStringAsync("https://raw.githubusercontent.com/ottercorp/dalamud-distrib/main/version");
+                    _ = await httpClient.GetStringAsync("https://raw.githubusercontent.com/AtmoOmen/Dalamud/master/global.json");
                     this.proxyStatus = "有效";
                 }
                 catch (Exception)

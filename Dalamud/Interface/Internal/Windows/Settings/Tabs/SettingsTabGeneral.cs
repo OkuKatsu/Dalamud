@@ -92,18 +92,29 @@ public class SettingsTabGeneral : SettingsTab
         var mainRepoUrl = config.MainRepoUrl;
         
         ImGui.Text("默认主库");
-        if (ImGui.RadioButton("国服 (ottercorp)", mainRepoUrl == PluginRepository.MainRepoUrlCN))
+        if (ImGui.RadioButton("国服 (DailyRoutines)", mainRepoUrl == PluginRepository.MainRepoUrlDailyRoutines))
         {
-            config.MainRepoUrl = PluginRepository.MainRepoUrlCN;
+            config.MainRepoUrl = PluginRepository.MainRepoUrlDailyRoutines;
             config.QueueSave();
             
             _ = Service<PluginManager>.Get().ReloadPluginMastersAsync();
         }
         
         ImGui.SameLine();
-        if (ImGui.RadioButton("国际服 (goatcorp)", mainRepoUrl == PluginRepository.MainRepoUrlGlobal))
+        if (ImGui.RadioButton("国服 (ottercorp)", mainRepoUrl == PluginRepository.MainRepoUrlOtterCorp))
         {
-            config.MainRepoUrl = PluginRepository.MainRepoUrlGlobal;
+            config.MainRepoUrl = PluginRepository.MainRepoUrlOtterCorp;
+            config.QueueSave();
+            
+            _ = Service<PluginManager>.Get().ReloadPluginMastersAsync();
+        }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("在 Dalamud (Soil) 访问 ottercorp 提供的插件库可能导致你的 IP 被其服务器封禁, 请注意");
+        
+        ImGui.SameLine();
+        if (ImGui.RadioButton("国际服 (goatcorp)", mainRepoUrl == PluginRepository.MainRepoUrlGoatCorp))
+        {
+            config.MainRepoUrl = PluginRepository.MainRepoUrlGoatCorp;
             config.QueueSave();
             
             _ = Service<PluginManager>.Get().ReloadPluginMastersAsync();
@@ -119,7 +130,7 @@ public class SettingsTabGeneral : SettingsTab
         if (ImGui.IsItemDeactivatedAfterEdit())
         {
             if (string.IsNullOrWhiteSpace(mainRepoUrl))
-                mainRepoUrl = PluginRepository.MainRepoUrlCN;
+                mainRepoUrl = PluginRepository.MainRepoUrlDailyRoutines;
             
             config.MainRepoUrl = mainRepoUrl;
             config.QueueSave();

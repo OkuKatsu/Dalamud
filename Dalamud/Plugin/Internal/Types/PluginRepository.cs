@@ -26,9 +26,10 @@ internal class PluginRepository
     /// <summary>
     ///     The URL of the official main repository.
     /// </summary>
-    public const string MainRepoUrlCN = "https://aonyx.ffxiv.wang/Plugin/PluginMaster?apiLevel=11";
-
-    public const string MainRepoUrlGlobal = "https://kamori.goats.dev/Plugin/PluginMaster";
+    
+    public const string MainRepoUrlDailyRoutines = "https://gh.atmoomen.top/https://raw.githubusercontent.com/Dalamud-DailyRoutines/PluginDistD17/main/pluginmaster.json";
+    public const string MainRepoUrlOtterCorp = "https://aonyx.ffxiv.wang/Plugin/PluginMaster?apiLevel=11";
+    public const string MainRepoUrlGoatCorp = "https://kamori.goats.dev/Plugin/PluginMaster";
 
     public static string MainRepoUrl => Service<DalamudConfiguration>.Get().MainRepoUrl;
 

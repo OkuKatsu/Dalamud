@@ -16,6 +16,7 @@ using Dalamud.Interface.Windowing.Persistence;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Plugin.Internal.Profiles;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Storage;
 using Dalamud.Utility;
 using Newtonsoft.Json;
@@ -62,7 +63,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// </summary>
     public event DalamudConfigurationSavedDelegate? DalamudConfigurationSaved;
 
-    public string MainRepoUrl { get; set; } = "https://aonyx.ffxiv.wang/Plugin/PluginMaster?apiLevel=11";
+    public string MainRepoUrl { get; set; } = PluginRepository.MainRepoUrlDailyRoutines;
     
     /// <summary>
     /// Gets or sets a list of muted words.
