@@ -508,7 +508,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
                         
                         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.LaughBeam, "加入我们的Discord"))
                         {
-                            Util.OpenLink("https://discord.gg/cbDd9b2tbg");
+                            Util.OpenLink("https://discord.gg/dailyroutines");
                         }
                         
                         ImGuiHelpers.ScaledDummy(5);

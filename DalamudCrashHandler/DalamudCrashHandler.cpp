@@ -1027,7 +1027,7 @@ int main() {
                     } else if (link == L"exporttspack") {
                         export_tspack(hwnd, logDir, ws_to_u8(log.str()), troubleshootingPackData);
                     } else if (link == L"discord") {
-                        ShellExecuteW(hwnd, nullptr, L"https://pd.ottercorp.net", nullptr, nullptr, SW_SHOW);
+                        ShellExecuteW(hwnd, nullptr, L"https://discord.gg/dailyroutines", nullptr, nullptr, SW_SHOW);
                     } else if (link == L"resume") {
                         attemptResume = true;
                         DestroyWindow(hwnd);
