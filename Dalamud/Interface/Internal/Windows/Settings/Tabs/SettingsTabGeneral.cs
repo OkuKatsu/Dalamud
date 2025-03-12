@@ -101,17 +101,6 @@ public class SettingsTabGeneral : SettingsTab
         }
         
         ImGui.SameLine();
-        if (ImGui.RadioButton("国服 (ottercorp)", mainRepoUrl == PluginRepository.MainRepoUrlOtterCorp))
-        {
-            config.MainRepoUrl = PluginRepository.MainRepoUrlOtterCorp;
-            config.QueueSave();
-            
-            _ = Service<PluginManager>.Get().ReloadPluginMastersAsync();
-        }
-        if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("在 Dalamud (Soil) 访问 ottercorp 提供的插件库可能导致你的 IP 被其服务器封禁, 请注意");
-        
-        ImGui.SameLine();
         if (ImGui.RadioButton("国际服 (goatcorp)", mainRepoUrl == PluginRepository.MainRepoUrlGoatCorp))
         {
             config.MainRepoUrl = PluginRepository.MainRepoUrlGoatCorp;

@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
+using Microsoft.VisualBasic.CompilerServices;
 
 namespace Dalamud.Networking.Http;
 
@@ -16,8 +17,6 @@ namespace Dalamud.Networking.Http;
 //         Otherwise, if PM eventually marks this class as required, note that in the comment above.
 internal class HappyHttpClient : IInternalDisposableService
 {
-    public static readonly Lazy<string> randomMachineCode = new(GenerateRandomMachineCode);
-    
     /// <summary>
     /// Initializes a new instance of the <see cref="HappyHttpClient"/> class.
     ///
@@ -42,27 +41,7 @@ internal class HappyHttpClient : IInternalDisposableService
                 },
             },
         };
-        this.SharedHttpClient.DefaultRequestHeaders.Add("X-Machine-Token", randomMachineCode.Value);
-    }
-    
-    public static string GenerateRandomMachineCode()
-    {
-        var parts = new string[3];
-        for (var i = 0; i < 3; i++)
-            parts[i] = RandomHex(32);
-        
-        return string.Join(":", parts);
-        
-        string RandomHex(int len)
-        {
-            const string hex   = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            var          chars = new char[len];
-            for (var i = 0; i < len; i++)
-            {
-                chars[i] = hex[new Random().Next(36)];
-            }
-            return new string(chars);
-        }
+        this.SharedHttpClient.DefaultRequestHeaders.Add("X-Machine-Token", DeviceUtils.GetDeviceId());
     }
     
     /// <summary>

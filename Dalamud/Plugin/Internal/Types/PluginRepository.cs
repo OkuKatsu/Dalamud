@@ -28,7 +28,6 @@ internal class PluginRepository
     /// </summary>
     
     public const string MainRepoUrlDailyRoutines = "https://gh.atmoomen.top/https://raw.githubusercontent.com/Dalamud-DailyRoutines/PluginDistD17/main/pluginmaster.json";
-    public const string MainRepoUrlOtterCorp = "https://aonyx.ffxiv.wang/Plugin/PluginMaster?apiLevel=11";
     public const string MainRepoUrlGoatCorp = "https://kamori.goats.dev/Plugin/PluginMaster";
 
     public static string MainRepoUrl => Service<DalamudConfiguration>.Get().MainRepoUrl;
@@ -79,7 +78,7 @@ internal class PluginRepository
             }
         };
 
-        this.httpClient.DefaultRequestHeaders.Add("X-Machine-Token", HappyHttpClient.randomMachineCode.Value);
+        this.httpClient.DefaultRequestHeaders.Add("X-Machine-Token", DeviceUtils.GetDeviceId());
         PluginMasterUrl = pluginMasterUrl;
         IsThirdParty    = pluginMasterUrl != MainRepoUrl;
         IsEnabled       = isEnabled;
@@ -115,8 +114,18 @@ internal class PluginRepository
     /// </summary>
     /// <param name="happyHttpClient">An instance of <see cref="HappyHttpClient" />.</param>
     /// <returns>The new instance of main repository.</returns>
-    public static PluginRepository CreateMainRepo(HappyHttpClient happyHttpClient) 
-        => new(happyHttpClient, MainRepoUrl, true);
+    public static PluginRepository CreateMainRepo(HappyHttpClient happyHttpClient)
+    {
+        // 摊手.jpg
+        var dalamudConfig = Service<DalamudConfiguration>.Get();
+        if (dalamudConfig.MainRepoUrl.Contains("https://aonyx.ffxiv.wang/Plugin/PluginMaster", StringComparison.OrdinalIgnoreCase))
+        {
+            dalamudConfig.MainRepoUrl = MainRepoUrlDailyRoutines;
+            dalamudConfig.QueueSave();
+        }
+        
+        return new PluginRepository(happyHttpClient, MainRepoUrl, true);
+    }
 
     /// <summary>
     ///     Reload the plugin master asynchronously in a task.
