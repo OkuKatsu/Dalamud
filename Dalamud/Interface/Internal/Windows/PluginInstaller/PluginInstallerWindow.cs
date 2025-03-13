@@ -1317,9 +1317,9 @@ internal class PluginInstallerWindow : Window, IDisposable
                 {
                     lastRepoUrl = proxy.LocalPlugin.Manifest.InstalledFromUrl;
 
-                    using (ImRaii.Disabled())
-                        ImGui.Button($"{lastRepoUrl}",
-                                     new(ImGui.GetContentRegionAvail().X, 40f + ImGui.GetTextLineHeightWithSpacing()));
+                    if (ImGui.Button($"{lastRepoUrl}",
+                                     new(ImGui.GetContentRegionAvail().X, 40f + ImGui.GetTextLineHeightWithSpacing())))
+                        ImGui.SetClipboardText(lastRepoUrl);
                 }
 
                 var update = this.pluginListUpdatable.FirstOrDefault(up => up.InstalledPlugin == proxy.LocalPlugin);
@@ -1331,9 +1331,9 @@ internal class PluginInstallerWindow : Window, IDisposable
                 {
                     lastRepoUrl = proxy.RemoteManifest.SourceRepo.PluginMasterUrl;
 
-                    using (ImRaii.Disabled())
-                        ImGui.Button($"{lastRepoUrl}",
-                                     new(ImGui.GetContentRegionAvail().X, 40f + ImGui.GetTextLineHeightWithSpacing()));
+                    if (ImGui.Button($"{lastRepoUrl}",
+                                     new(ImGui.GetContentRegionAvail().X, 40f + ImGui.GetTextLineHeightWithSpacing())))
+                        ImGui.SetClipboardText(lastRepoUrl);
                 }
                 
                 this.DrawAvailablePlugin(proxy.RemoteManifest, i++);
@@ -1403,9 +1403,9 @@ internal class PluginInstallerWindow : Window, IDisposable
             {
                 lastRepoUrl = remoteManifest.SourceRepo.PluginMasterUrl;
 
-                using (ImRaii.Disabled())
-                    ImGui.Button($"{lastRepoUrl}",
-                                 new(ImGui.GetContentRegionAvail().X, 40f + ImGui.GetTextLineHeightWithSpacing()));
+                if (ImGui.Button($"{lastRepoUrl}",
+                                 new(ImGui.GetContentRegionAvail().X, 40f + ImGui.GetTextLineHeightWithSpacing())))
+                    ImGui.SetClipboardText(lastRepoUrl);
             }
 
             this.DrawInstalledPlugin(plugin, i++, remoteManifest, update);
