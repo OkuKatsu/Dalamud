@@ -71,11 +71,6 @@ jobs:
           ($env:TAG) >> VERSION
       - name: Build and Test Dalamud
         run: .\build.ps1 ci
-      - name: Sign Dalamud
-        env:
-          CODESIGN_CERT_PFX: ${{ secrets.CODESIGN_CERT_PFX }}
-          CODESIGN_CERT_PASSWORD: ${{ secrets.CODESIGN_CERT_PASSWORD }}
-        run: .\sign.ps1 .\bin\Release
       - name: Create hashlist
         run: .\CreateHashList.ps1 .\bin\Release
 
