@@ -180,7 +180,7 @@ internal class SettingsWindow : Window
             }
             else
             {
-                if (ImGui.BeginTabItem("Search Results"))
+                if (ImGui.BeginTabItem("搜索结果"))
                 {
                     var any = false;
 
@@ -188,7 +188,7 @@ internal class SettingsWindow : Window
                     {
                         var eligible = settingsTab.Entries.Where(x => !x.Name.IsNullOrEmpty() && x.Name.ToLowerInvariant().Contains(this.searchInput.ToLowerInvariant())).ToArray();
 
-                        if (!eligible.Any())
+                        if (eligible.Length == 0)
                             continue;
 
                         any = true;
@@ -208,7 +208,7 @@ internal class SettingsWindow : Window
                     }
 
                     if (!any)
-                        ImGui.TextColored(ImGuiColors.DalamudGrey, "No results found...");
+                        ImGui.TextColored(ImGuiColors.DalamudGrey, "无搜索结果");
 
                     ImGui.EndTabItem();
                 }
