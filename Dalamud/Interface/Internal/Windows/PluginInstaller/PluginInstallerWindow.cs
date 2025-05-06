@@ -2187,16 +2187,14 @@ internal class PluginInstallerWindow : Window, IDisposable
         // Outdated warning
         if (plugin is { IsOutdated: true, IsBanned: false } || flags.HasFlag(PluginHeaderFlags.IsInstallableOutdated))
         {
-            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-
-            var bodyText = Locs.PluginBody_Outdated + " ";
+            var bodyText = $"插件 API 版本 ({plugin?.APILevel ?? 0}) 与 Dalamud API 版本 ({PluginManager.DalamudApiLevel}) 不对应, 无法使用" + " ";
             if (flags.HasFlag(PluginHeaderFlags.UpdateAvailable))
-                bodyText += Locs.PluginBody_Outdated_CanNowUpdate;
+                bodyText += "存在可用更新, 可以尝试更新后再试";
             else
-                bodyText += Locs.PluginBody_Outdated_WaitForUpdate;
-
-            ImGui.TextWrapped(bodyText);
-            ImGui.PopStyleColor();
+                bodyText += "请静待插件或框架 API 版本相匹配";
+            
+            using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed))
+                ImGui.TextWrapped(bodyText);
         }
         else if (plugin is { IsBanned: true })
         {
@@ -4030,7 +4028,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string PluginTitleMod_UnloadError => " (卸载错误)";
 
-        public static string PluginTitleMod_OutdatedError => " (已过时)";
+        public static string PluginTitleMod_OutdatedError => " (API 版本不对应)";
 
         public static string PluginTitleMod_BannedError => " (自动禁用)";
 

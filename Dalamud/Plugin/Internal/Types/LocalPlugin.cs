@@ -302,7 +302,7 @@ internal class LocalPlugin : IAsyncDisposable
                 throw new PluginPreconditionFailedException($"无法加载 {this.Name}，游戏版本新于适用版本 {this.manifest.ApplicableVersion}");
 
             // 我们希望允许加载 API 级别低于当前 Dalamud API 级别的开发插件，以便于开发
-            if (this.manifest.EffectiveApiLevel < PluginManager.DalamudApiLevel && !pluginManager.LoadAllApiLevels && !this.IsDev)
+            if (APILevel != PluginManager.DalamudApiLevel && !pluginManager.LoadAllApiLevels && !this.IsDev)
                 throw new PluginPreconditionFailedException($"无法加载 {this.Name}，不兼容的 API 级别 {this.manifest.EffectiveApiLevel}");
 
             // 我们可能想在这里抛出异常？
