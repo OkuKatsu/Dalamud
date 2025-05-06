@@ -2189,9 +2189,9 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             var bodyText = $"插件 API 版本 ({plugin?.APILevel ?? 0}) 与 Dalamud API 版本 ({PluginManager.DalamudApiLevel}) 不对应, 无法使用" + " ";
             if (flags.HasFlag(PluginHeaderFlags.UpdateAvailable))
-                bodyText += "存在可用更新, 可以尝试更新后再试";
+                bodyText += "\n存在可用更新, 可以尝试更新后再试";
             else
-                bodyText += "请静待插件或框架 API 版本相匹配";
+                bodyText += "\n请静待插件或框架 API 版本相匹配";
             
             using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed))
                 ImGui.TextWrapped(bodyText);
