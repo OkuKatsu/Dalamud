@@ -2733,17 +2733,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.SameLine();
             ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadText);
 
-            var acceptsFeedback =
-                this.pluginListAvailable.Any(x => x.InternalName == plugin.InternalName && x.AcceptsFeedback);
-
             var isThirdParty = plugin.IsThirdParty;
-            var canFeedback = !isThirdParty &&
-                              !plugin.IsDev &&
-                              !plugin.IsOrphaned &&
-                              (plugin.Manifest.DalamudApiLevel == PluginManager.DalamudApiLevel ||
-                               (plugin.Manifest.TestingDalamudApiLevel == PluginManager.DalamudApiLevel && hasTestingAvailable)) &&
-                              acceptsFeedback &&
-                              availablePluginUpdate == default;
 
             // Installed from
             if (plugin.IsDev)
@@ -2806,13 +2796,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             this.DrawVisitRepoUrlButton(plugin.Manifest.RepoUrl, false);
             this.DrawDeletePluginButton(plugin);
 
-            if (canFeedback)
-            {
-                ImGui.SameLine();
-                this.DrawSendFeedbackButton(plugin.Manifest, plugin.IsTesting, false);
-            }
-
-            if (availablePluginUpdate != default && !plugin.IsDev)
+            if (availablePluginUpdate != null && !plugin.IsDev)
             {
                 ImGui.SameLine();
                 this.DrawUpdateSinglePluginButton(availablePluginUpdate);
@@ -2984,8 +2968,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         disabled = disabled || profileManager.IsBusy;
 
         var toggleId = plugin.Manifest.InternalName;
-        var isLoadedAndUnloadable = plugin.State == PluginState.Loaded ||
-                                    plugin.State == PluginState.DependencyResolutionFailed;
+        var isLoadedAndUnloadable = plugin.State is PluginState.Loaded or PluginState.DependencyResolutionFailed;
 
         // StyleModelV1.DalamudStandard.Push();
 
