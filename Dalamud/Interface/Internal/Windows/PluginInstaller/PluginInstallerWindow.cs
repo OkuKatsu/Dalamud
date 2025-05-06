@@ -1300,46 +1300,70 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private void DrawAvailablePluginList()
     {
+        var proxies = this.GatherProxies().ToList();
+        if (proxies.Count == 0)
+            return; // 没有插件可显示
+        
+        // 按仓库 URL 对插件分组
+        var proxyGroups = proxies
+            .GroupBy(p => {
+                if (p.LocalPlugin is { IsDev: false })
+                    return p.LocalPlugin.Manifest.InstalledFromUrl;
+                else if (p.RemoteManifest != null)
+                    return p.RemoteManifest.SourceRepo.PluginMasterUrl;
+                else
+                    return "开发版插件";
+            })
+            .OrderBy(g => g.Key)
+            .ToList();
+        
         var i = 0;
-        var lastRepoUrl = string.Empty;
-        foreach (var proxy in this.GatherProxies())
+        foreach (var group in proxyGroups)
         {
-            IPluginManifest applicableManifest = proxy.LocalPlugin != null ? proxy.LocalPlugin.Manifest : proxy.RemoteManifest;
-
-            if (applicableManifest == null)
-                throw new Exception("Could not determine manifest for available plugin");
+            var repoUrl = group.Key;
+            var hasItems = false;
             
-            ImGui.PushID($"{applicableManifest.InternalName}{applicableManifest.AssemblyVersion}");
-            
-            if (proxy.LocalPlugin != null)
+            // 绘制仓库标题
+            if (!string.IsNullOrEmpty(repoUrl))
             {
-                if (!proxy.LocalPlugin.IsDev && lastRepoUrl != proxy.LocalPlugin.Manifest.InstalledFromUrl)
-                {
-                    lastRepoUrl = proxy.LocalPlugin.Manifest.InstalledFromUrl;
-
-                    if (ImGui.Button($"{lastRepoUrl}",
-                                     new(ImGui.GetContentRegionAvail().X, 40f + ImGui.GetTextLineHeightWithSpacing())))
-                        ImGui.SetClipboardText(lastRepoUrl);
-                }
-
-                var update = this.pluginListUpdatable.FirstOrDefault(up => up.InstalledPlugin == proxy.LocalPlugin);
-                this.DrawInstalledPlugin(proxy.LocalPlugin, i++, proxy.RemoteManifest, update);
+                if (ImGui.Button($"{repoUrl}###repo{i}",
+                                 new(ImGui.GetContentRegionAvail().X, 40f + ImGui.GetTextLineHeightWithSpacing())))
+                    ImGui.SetClipboardText(repoUrl);
             }
-            else if (proxy.RemoteManifest != null)
+            
+            // 绘制该仓库下的所有插件
+            foreach (var proxy in group)
             {
-                if (lastRepoUrl != proxy.RemoteManifest.SourceRepo.PluginMasterUrl)
-                {
-                    lastRepoUrl = proxy.RemoteManifest.SourceRepo.PluginMasterUrl;
-
-                    if (ImGui.Button($"{lastRepoUrl}",
-                                     new(ImGui.GetContentRegionAvail().X, 40f + ImGui.GetTextLineHeightWithSpacing())))
-                        ImGui.SetClipboardText(lastRepoUrl);
-                }
+                hasItems = true;
                 
-                this.DrawAvailablePlugin(proxy.RemoteManifest, i++);
-            }
+                IPluginManifest applicableManifest = proxy.LocalPlugin != null ? proxy.LocalPlugin.Manifest : proxy.RemoteManifest;
 
-            ImGui.PopID();
+                if (applicableManifest == null)
+                    throw new Exception("Could not determine manifest for available plugin");
+                
+                ImGui.PushID($"{applicableManifest.InternalName}{applicableManifest.AssemblyVersion}");
+                
+                if (proxy.LocalPlugin != null)
+                {
+                    var update = this.pluginListUpdatable.FirstOrDefault(up => up.InstalledPlugin == proxy.LocalPlugin);
+                    this.DrawInstalledPlugin(proxy.LocalPlugin, i++, proxy.RemoteManifest, update);
+                }
+                else if (proxy.RemoteManifest != null)
+                {
+                    this.DrawAvailablePlugin(proxy.RemoteManifest, i++);
+                }
+
+                ImGui.PopID();
+            }
+            
+            // 如果没有显示任何项目，绘制一个提示
+            if (!hasItems)
+            {
+                ImGui.TextColored(ImGuiColors.DalamudGrey2, 
+                    string.IsNullOrWhiteSpace(this.searchText) 
+                        ? "此仓库未找到可用插件" 
+                        : $"未找到匹配 \"{this.searchText}\" 的插件");
+            }
         }
 
         // Reset the category to "All" if we're on the "Hidden" category and there are no hidden plugins (we removed the last one)
@@ -3645,17 +3669,18 @@ internal class PluginInstallerWindow : Window, IDisposable
             return 0;
 
         var searchQuery = this.searchText.Trim().ToLowerInvariant();
-        var searchTerms = searchQuery.Split([' '], StringSplitOptions.RemoveEmptyEntries);
+        var searchTerms = searchQuery.Split([' ', '　'], StringSplitOptions.RemoveEmptyEntries);
 
         if (searchTerms.Length == 0) return 0;
 
         var totalScore = 0;
 
+        // 基于各种元数据字段计算匹配分数，权重递减
         totalScore += CalculateMatchScore(searchTerms, manifest.Name,         weight: 200);
         totalScore += CalculateMatchScore(searchTerms, manifest.InternalName, weight: 180);
-
-        totalScore += CalculateMatchScore(searchTerms, manifest.Author,    weight: 150);
-        totalScore += CalculateMatchScore(searchTerms, manifest.Punchline, weight: 120);
+        totalScore += CalculateMatchScore(searchTerms, manifest.Author,       weight: 150);
+        totalScore += CalculateMatchScore(searchTerms, manifest.Punchline,    weight: 120);
+        totalScore += CalculateMatchScore(searchTerms, manifest.Description,  weight: 100);
 
         if (manifest.Tags != null)
         {
@@ -3663,6 +3688,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 totalScore += CalculateMatchScore(searchTerms, tag, weight: 100);
         }
 
+        // 完全没匹配到的结果应该返回一个负分，确保它们排在最后
         if (totalScore == 0) return -100;
         return totalScore;
     }
@@ -3673,10 +3699,12 @@ internal class PluginInstallerWindow : Window, IDisposable
             return 0;
 
         var targetLower = target.Trim().ToLowerInvariant();
-        var score       = 0;
+        var score = 0;
 
         foreach (var term in searchTerms)
         {
+            if (term.Length < 2) continue; // 忽略过短的搜索词
+
             if (requireFullMatch)
             {
                 if (targetLower.Equals(term))
@@ -3684,17 +3712,43 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
             else
             {
-                if (targetLower.StartsWith(term))
-                    score += (int)(weight * 1.2);
-                else if (targetLower.Contains(term))
+                // 完全匹配给予最高分
+                if (targetLower.Equals(term))
+                    score += weight * 2;
+                // 作为单词起始给予高分（适用于英文和拼音搜索）
+                else if (targetLower.StartsWith(term, StringComparison.OrdinalIgnoreCase) ||
+                        targetLower.Contains(" " + term, StringComparison.OrdinalIgnoreCase))
+                    score += (int)(weight * 1.5);
+                // 包含搜索词给予基础分
+                else if (targetLower.Contains(term, StringComparison.OrdinalIgnoreCase))
                     score += weight;
+                
+                // 对中文搜索特别优化：中文通常没有单词边界，所以部分匹配也很重要
+                if (ContainsHanScript(term) && targetLower.Contains(term))
+                    score += (int)(weight * 1.3);
             }
         }
 
-        if (searchTerms.Any(term => term.Length >= 4 && targetLower.Contains(term)))
-            score += 50;
+        // 对于长搜索词给予额外加分（4个字符以上）
+        foreach (var term in searchTerms.Where(t => t.Length >= 4))
+        {
+            if (targetLower.Contains(term))
+                score += 50;
+        }
 
         return score;
+    }
+
+    private bool ContainsHanScript(string text)
+    {
+        // 检查字符串中是否包含汉字
+        foreach (char c in text)
+        {
+            if ((c >= 0x4E00 && c <= 0x9FFF) || // CJK统一汉字
+                (c >= 0x3400 && c <= 0x4DBF))   // CJK扩展A
+                return true;
+        }
+        return false;
     }
 
     private (bool IsInstalled, LocalPlugin Plugin) IsManifestInstalled(IPluginManifest? manifest)
