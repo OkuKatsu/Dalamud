@@ -15,6 +15,7 @@ using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Loader;
 using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Plugin.Internal.Types.Manifest;
+using Dalamud.Utility;
 
 namespace Dalamud.Plugin.Internal.Types;
 
@@ -61,11 +62,12 @@ internal class LocalPlugin : IAsyncDisposable
         }
 
         this.DllFile = dllFile;
-        this.State = PluginState.Unloaded;
 
         // 虽然这里是有条件使用的，但我们需要无论如何都设置初始值。
         this.manifestFile = LocalPluginManifest.GetManifestFile(this.DllFile);
         this.manifest = manifest;
+
+        this.State = PluginState.Unloaded;
 
         var needsSaveDueToLegacyFiles = false;
 
@@ -315,6 +317,9 @@ internal class LocalPlugin : IAsyncDisposable
             if (!this.CheckPolicy())
                 throw new PluginPreconditionFailedException($"由于加载策略禁止，无法加载 {this.Name}");
 
+            if (this.Manifest.MinimumDalamudVersion != null && this.Manifest.MinimumDalamudVersion > Util.AssemblyVersionParsed)
+                throw new PluginPreconditionFailedException($"Unable to load {this.Name}, Dalamud version is lower than minimum required version {this.Manifest.MinimumDalamudVersion}");
+
             this.State = PluginState.Loading;
             Log.Information($"正在加载 {this.DllFile.Name}");
 
@@ -354,19 +359,13 @@ internal class LocalPlugin : IAsyncDisposable
                 }
 
                 this.loader.Reload();
+                this.RefreshAssemblyInformation();
             }
 
-            // 加载程序集
-            this.pluginAssembly ??= this.loader.LoadDefaultAssembly();
+            Log.Verbose("{Name} ({Guid}): 具有类型", this.InternalName, this.EffectiveWorkingPluginId);
 
-            this.AssemblyName = this.pluginAssembly.GetName();
-
-            // 查找插件接口实现。在构造函数中检查后可以保证它存在。
-            this.pluginType ??= this.pluginAssembly.GetTypes()
-                                    .First(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
-
-            // 检查是否有任何已加载的插件具有相同的程序集名称
-            var assemblyName = this.pluginAssembly.GetName().Name;
+            // Check for any loaded plugins with the same assembly name
+            var assemblyName = this.pluginAssembly!.GetName().Name;
             foreach (var otherPlugin in pluginManager.InstalledPlugins)
             {
                 // 在热重载期间，这个插件将在插件列表中，并且实例将已被处置
@@ -378,7 +377,7 @@ internal class LocalPlugin : IAsyncDisposable
                 if (otherPluginAssemblyName == assemblyName && otherPluginAssemblyName != null)
                 {
                     this.State = PluginState.Unloaded;
-                    Log.Debug($"重复的程序集: {this.Name}");
+                    Log.Debug("重复的程序集: {Name}", this.InternalName);
 
                     throw new DuplicatePluginException(assemblyName);
                 }
@@ -394,7 +393,7 @@ internal class LocalPlugin : IAsyncDisposable
                 this.instance = await CreatePluginInstance(
                                     this.manifest,
                                     this.serviceScope,
-                                    this.pluginType,
+                                    this.pluginType!,
                                     this.dalamudInterface);
                 this.State = PluginState.Loaded;
                 Log.Information("完成加载 {PluginName}", this.InternalName);
@@ -579,7 +578,7 @@ internal class LocalPlugin : IAsyncDisposable
         var newInstanceTask = forceFrameworkThread ? framework.RunOnFrameworkThread(Create) : Create();
         return await newInstanceTask.ConfigureAwait(false);
 
-        async Task<IDalamudPlugin> Create() => (IDalamudPlugin)await scope.CreateAsync(type, dalamudInterface);
+        async Task<IDalamudPlugin> Create() => (IDalamudPlugin)await scope.CreateAsync(type, ObjectInstanceVisibility.ExposedToPlugins, dalamudInterface);
     }
 
     private static void SetupLoaderConfig(LoaderConfig config)
@@ -606,6 +605,10 @@ internal class LocalPlugin : IAsyncDisposable
         if (this.loader != null)
             return;
 
+        this.DllFile.Refresh();
+        if (!this.DllFile.Exists)
+            throw new Exception($"Plugin DLL file at '{this.DllFile.FullName}' did not exist, cannot load.");
+
         try
         {
             this.loader = PluginLoader.CreateFromAssemblyFile(this.DllFile.FullName, SetupLoaderConfig);
@@ -617,17 +620,30 @@ internal class LocalPlugin : IAsyncDisposable
             throw;
         }
 
+        this.RefreshAssemblyInformation();
+    }
+
+    private void RefreshAssemblyInformation()
+    {
+        if (this.loader == null)
+            throw new InvalidOperationException("未找到可用的加载器");
+
         try
         {
             this.pluginAssembly = this.loader.LoadDefaultAssembly();
+            this.AssemblyName = this.pluginAssembly.GetName();
         }
         catch (Exception ex)
         {
-            this.pluginAssembly = null;
-            this.pluginType = null;
-            this.loader.Dispose();
+            this.ResetLoader();
+            Log.Error(ex, $"非插件: {this.DllFile.FullName}");
+            throw new InvalidPluginException(this.DllFile);
+        }
 
-            Log.Error(ex, $"不是插件: {this.DllFile.FullName}");
+        if (this.pluginAssembly == null)
+        {
+            this.ResetLoader();
+            Log.Error("插件程序集为空: {DllFileFullName}", this.DllFile.FullName);
             throw new InvalidPluginException(this.DllFile);
         }
 
@@ -637,30 +653,35 @@ internal class LocalPlugin : IAsyncDisposable
         }
         catch (ReflectionTypeLoadException ex)
         {
-            Log.Error(ex, $"在搜索 IDalamudPlugin 时无法加载一个或多个类型: {this.DllFile.FullName}");
-            // 在解析类型时发生了一些错误，但我们仍然想寻找 IDalamudPlugin。让 Load() 处理错误。
-            this.pluginType = ex.Types.FirstOrDefault(type => type != null && type.IsAssignableTo(typeof(IDalamudPlugin)));
+            this.ResetLoader();
+            Log.Error(ex, "在搜索 IDalamudPlugin 时无法加载一个或多个类: {DllFileFullName}", this.DllFile.FullName);
+            throw;
         }
 
-        if (this.pluginType == default)
+        if (this.pluginType == null)
         {
-            this.pluginAssembly = null;
-            this.pluginType = null;
-            this.loader.Dispose();
-
-            Log.Error($"没有任何类型继承自 IDalamudPlugin: {this.DllFile.FullName}");
+            this.ResetLoader();
+            Log.Error("没有任何类继承自 IDalamudPlugin: {DllFileFullName}", this.DllFile.FullName);
             throw new InvalidPluginException(this.DllFile);
         }
     }
 
+    private void ResetLoader()
+    {
+        this.pluginAssembly = null;
+        this.pluginType = null;
+        this.loader?.Dispose();
+        this.loader = null;
+    }
+
     /// <summary>清除并处置与插件实例相关联的所有资源。</summary>
     /// <param name="disposalMode">是否清除并处置 <see cref="loader"/>。</param>
-    /// <returns>如果发生任何异常。</returns>
+    /// <returns>如果发生任何异常。</return>
     private async Task<AggregateException?> ClearAndDisposeAllResources(PluginLoaderDisposalMode disposalMode)
     {
         List<Exception>? exceptions = null;
         Log.Verbose(
-            "{name}({id}): {fn}(disposalMode={disposalMode})",
+            "{name}({id}): {fn}(处置模式={disposalMode})",
             this.InternalName,
             this.EffectiveWorkingPluginId,
             nameof(this.ClearAndDisposeAllResources),

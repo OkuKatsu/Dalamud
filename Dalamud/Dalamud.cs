@@ -90,7 +90,7 @@ internal sealed class Dalamud : IServiceType
                 return;
 
             Util.Fatal(
-                "Dalamud failed to load all necessary services.\n\nThe game will continue, but you may not be able to use plugins.",
+                $"Dalamud failed to load all necessary services.\nThe game will continue, but you may not be able to use plugins.\n\n{t.Exception}",
                 "Dalamud", false);
         }
 
