@@ -36,9 +36,10 @@ internal class DalamudChangelogManager
     /// Reload the changelog list.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public async Task ReloadChangelogAsync()
+    public Task ReloadChangelogAsync()
     {
         this.Changelogs = [];
+        return Task.CompletedTask;
     }
 
     /// <summary>

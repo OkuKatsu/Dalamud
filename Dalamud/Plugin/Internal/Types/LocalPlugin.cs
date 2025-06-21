@@ -676,7 +676,6 @@ internal class LocalPlugin : IAsyncDisposable
 
     /// <summary>清除并处置与插件实例相关联的所有资源。</summary>
     /// <param name="disposalMode">是否清除并处置 <see cref="loader"/>。</param>
-    /// <returns>如果发生任何异常。</return>
     private async Task<AggregateException?> ClearAndDisposeAllResources(PluginLoaderDisposalMode disposalMode)
     {
         List<Exception>? exceptions = null;

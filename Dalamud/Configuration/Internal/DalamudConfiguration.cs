@@ -372,6 +372,8 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// Gets or sets the proxy port.
     /// </summary>
     public int ProxyPort { get; set; } = 1080;
+    
+    /// <summary>
     /// Gets or sets the default UI preset.
     /// </summary>
     public PresetModel DefaultUiPreset { get; set; } = new();

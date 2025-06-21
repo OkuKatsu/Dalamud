@@ -606,7 +606,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                     break;
                 case LoadingIndicatorKind.Manager:
                     {
-                        switch (pluginManager.PluginsReady) 
+                        if (pluginManager.PluginsReady && !pluginManager.ReposReady)
                         {
                             ImGuiHelpers.CenteredText("加载插件仓库中...");
                             ImGuiHelpers.ScaledDummy(10);
@@ -787,11 +787,11 @@ internal class PluginInstallerWindow : Window, IDisposable
         
         ImGui.SameLine();
         if (ImGui.Button("扫描开发版插件"))
-            pluginManager.ScanDevPlugins();
+            _ = pluginManager.ScanDevPluginsAsync();
         
         ImGui.SameLine();
         if (ImGui.Button("刷新插件列表"))
-            _ = pluginManager.ReloadPluginMastersAsync(true, true);
+            _ = pluginManager.ReloadPluginMastersAsync();
         
         ImGui.SameLine();
         ImGui.TextDisabled("|");

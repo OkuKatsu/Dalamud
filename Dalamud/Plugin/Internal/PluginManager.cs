@@ -722,9 +722,8 @@ internal class PluginManager : IInternalDisposableService
     /// Reload the PluginMaster for each repo, filter, and event that the list has updated.
     /// </summary>
     /// <param name="notify">Whether to notify that available plugins have changed afterwards.</param>
-    /// <param name="skipCache">Skip MemoryCache.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public async Task ReloadPluginMastersAsync(bool notify = true, bool skipCache = false)
+    public async Task ReloadPluginMastersAsync(bool notify = true)
     {
         Log.Information("Now reloading all PluginMasters...");
 
@@ -735,7 +734,7 @@ internal class PluginManager : IInternalDisposableService
 
         try
         {
-            await Task.WhenAll(this.Repos.Select(repo => repo.ReloadPluginMasterAsync(skipCache)));
+            await Task.WhenAll(this.Repos.Select(repo => repo.ReloadPluginMasterAsync()));
 
             Log.Information("PluginMasters reloaded, now refiltering...");
 
@@ -1203,10 +1202,7 @@ internal class PluginManager : IInternalDisposableService
     /// <returns>A value indicating whether the plugin/manifest has been banned.</returns>
     public bool IsManifestBanned(PluginManifest manifest)
     {
-        Debug.Assert(this.bannedPlugins != null, "this.bannedPlugins != null");
-
-        ///if (this.LoadBannedPlugins)
-        ///    return true;
+        Debug.Assert(this.bannedPlugins != null);
 
         var config = Service<DalamudConfiguration>.Get();
 
