@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -17,12 +16,12 @@ using Newtonsoft.Json;
 namespace Dalamud.Plugin.Internal.Types;
 
 /// <summary>
-///     This class represents a single plugin repository.
+///     表示单个插件仓库
 /// </summary>
 internal class PluginRepository
 {
     /// <summary>
-    ///     The URL of the official main repository.
+    ///     官方主仓库地址
     /// </summary>
     
     public const string MainRepoUrlDailyRoutines = "https://gh.atmoomen.top/https://raw.githubusercontent.com/Dalamud-DailyRoutines/PluginDistD17/main/pluginmaster.json";
@@ -37,11 +36,11 @@ internal class PluginRepository
     private readonly HttpClient httpClient;
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="PluginRepository" /> class.
+    ///     创建插件仓库实例
     /// </summary>
-    /// <param name="happyHttpClient">An instance of <see cref="HappyHttpClient" />.</param>
-    /// <param name="pluginMasterUrl">The plugin master URL.</param>
-    /// <param name="isEnabled">Whether the plugin repo is enabled.</param>
+    /// <param name="happyHttpClient">HTTP客户端实例</param>
+    /// <param name="pluginMasterUrl">插件主文件地址</param>
+    /// <param name="isEnabled">仓库是否启用</param>
     public PluginRepository(HappyHttpClient happyHttpClient, string pluginMasterUrl, bool isEnabled)
     {
         this.httpClient = new(new SocketsHttpHandler
@@ -75,35 +74,35 @@ internal class PluginRepository
     }
 
     /// <summary>
-    ///     Gets the pluginmaster.json URL.
+    ///     插件主文件地址
     /// </summary>
     public string PluginMasterUrl { get; }
 
     /// <summary>
-    ///     Gets a value indicating whether this plugin repository is from a third party.
+    ///     是否为第三方仓库
     /// </summary>
     public bool IsThirdParty { get; }
 
     /// <summary>
-    ///     Gets a value indicating whether this repo is enabled.
+    ///     仓库是否启用
     /// </summary>
     public bool IsEnabled { get; }
 
     /// <summary>
-    ///     Gets the plugin master list of available plugins.
+    ///     可用插件列表
     /// </summary>
     public ReadOnlyCollection<RemotePluginManifest>? PluginMaster { get; private set; }
 
     /// <summary>
-    ///     Gets the initialization state of the plugin repository.
+    ///     仓库初始化状态
     /// </summary>
     public PluginRepositoryState State { get; private set; }
 
     /// <summary>
-    ///     Gets a new instance of the <see cref="PluginRepository" /> class for the main repo.
+    ///     创建主仓库实例
     /// </summary>
-    /// <param name="happyHttpClient">An instance of <see cref="HappyHttpClient" />.</param>
-    /// <returns>The new instance of main repository.</returns>
+    /// <param name="happyHttpClient">HTTP客户端实例</param>
+    /// <returns>主仓库实例</returns>
     public static PluginRepository CreateMainRepo(HappyHttpClient happyHttpClient)
     {
         // 摊手.jpg
@@ -118,9 +117,9 @@ internal class PluginRepository
     }
 
     /// <summary>
-    ///     Reload the plugin master asynchronously in a task.
+    ///     异步重新加载插件列表
     /// </summary>
-    /// <returns>The new state.</returns>
+    /// <returns>更新后的状态</returns>
     public async Task ReloadPluginMasterAsync()
     {
         this.State        = PluginRepositoryState.InProgress;
@@ -128,7 +127,7 @@ internal class PluginRepository
 
         try
         {
-            Log.Information($"Fetching repo: {this.PluginMasterUrl}");
+            Log.Information($"开始获取仓库数据：{this.PluginMasterUrl}");
 
             using var response = await this.GetPluginMaster(this.PluginMasterUrl);
 
@@ -137,42 +136,12 @@ internal class PluginRepository
             var data         = await response.Content.ReadAsStringAsync();
             var pluginMaster = JsonConvert.DeserializeObject<List<RemotePluginManifest>>(data);
 
-            if (pluginMaster == null) { throw new Exception("Deserialized PluginMaster was null."); }
+            if (pluginMaster == null) { throw new Exception("插件列表反序列化失败，结果为空"); }
 
             pluginMaster.Sort((pm1, pm2) => string.Compare(pm1.Name, pm2.Name, StringComparison.Ordinal));
 
             // Set the source for each remote manifest. Allows for checking if is 3rd party.
             foreach (var manifest in pluginMaster) { manifest.SourceRepo = this; }
-
-            var pm       = Service<PluginManager>.Get();
-            var official = pm.Repos.First();
-            Debug.Assert(!official.IsThirdParty, "First repository should be official repository");
-
-            if (official.State == PluginRepositoryState.Success && this.IsThirdParty)
-            {
-                pluginMaster = pluginMaster.Where(thisRepoEntry =>
-                {
-                    if (official.PluginMaster!.Any(officialRepoEntry =>
-                                                       string.Equals(thisRepoEntry.InternalName, officialRepoEntry.InternalName,
-                                                                     StringComparison.InvariantCultureIgnoreCase)))
-                    {
-                        Log.Warning(
-                            "The repository {RepoName} tried to replace the plugin {PluginName}, which is already installed through the official repo - this is no longer allowed for security reasons. " +
-                            "Please reach out if you have an use case for this.",
-                            this.PluginMasterUrl,
-                            thisRepoEntry.InternalName);
-                        return false;
-                    }
-
-                    return true;
-                }).ToList();
-            }
-            else if (this.IsThirdParty)
-            {
-                Log.Warning("Official repository not loaded - couldn't check for overrides!");
-                this.State = PluginRepositoryState.Fail;
-                return;
-            }
 
             this.PluginMaster = pluginMaster.Where(this.IsValidManifest).ToList().AsReadOnly();
 
@@ -182,12 +151,12 @@ internal class PluginRepository
                 foreach (var manifest in this.PluginMaster) { manifest.IsHide = false; }
             }
 
-            Log.Information($"Successfully fetched repo: {this.PluginMasterUrl}");
+            Log.Information($"仓库数据获取成功：{this.PluginMasterUrl}");
             this.State = PluginRepositoryState.Success;
         }
         catch (Exception ex)
         {
-            Log.Error(ex, $"PluginMaster failed: {this.PluginMasterUrl}");
+            Log.Error(ex, $"仓库数据获取失败：{this.PluginMasterUrl}");
             this.State = PluginRepositoryState.Fail;
         }
     }
@@ -196,20 +165,20 @@ internal class PluginRepository
     {
         if (manifest.InternalName.IsNullOrWhitespace())
         {
-            Log.Error("Repository at {RepoLink} has a plugin with an invalid InternalName.", PluginMasterUrl);
+            Log.Error("仓库 {RepoLink} 中存在插件缺少有效的内部名称", PluginMasterUrl);
             return false;
         }
 
         if (manifest.Name.IsNullOrWhitespace())
         {
-            Log.Error("Plugin {PluginName} in {RepoLink} has an invalid Name.", manifest.InternalName, PluginMasterUrl);
+            Log.Error("仓库 {RepoLink} 中的插件 {PluginName} 缺少有效的名称", manifest.InternalName, PluginMasterUrl);
             return false;
         }
 
         // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         if (manifest.AssemblyVersion == null)
         {
-            Log.Error("Plugin {PluginName} in {RepoLink} has an invalid AssemblyVersion.", manifest.InternalName,
+            Log.Error("仓库 {RepoLink} 中的插件 {PluginName} 缺少有效的程序集版本", manifest.InternalName,
                       PluginMasterUrl);
             return false;
         }
@@ -218,7 +187,7 @@ internal class PluginRepository
             manifest.TestingAssemblyVersion > manifest.AssemblyVersion &&
             manifest.TestingDalamudApiLevel == null)
             Log.Warning(
-                "The plugin {PluginName} in {RepoLink} has a testing version available, but it lacks an associated testing API. The 'TestingDalamudApiLevel' property is required.",
+                "仓库 {RepoLink} 中的插件 {PluginName} 有测试版本可用，但未指定测试API版本，需要提供 'TestingDalamudApiLevel' 属性",
                 manifest.InternalName, PluginMasterUrl);
 
         return true;
@@ -226,7 +195,7 @@ internal class PluginRepository
 
     private async Task<HttpResponseMessage> GetPluginMaster(string url, int timeout = HttpRequestTimeoutSeconds)
     {
-        var httpClient = Service<HappyHttpClient>.Get().SharedHttpClient;
+        var client = Service<HappyHttpClient>.Get().SharedHttpClient;
 
         var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -234,6 +203,6 @@ internal class PluginRepository
 
         using var requestCts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout));
 
-        return await httpClient.SendAsync(request, requestCts.Token);
+        return await client.SendAsync(request, requestCts.Token);
     }
 }
