@@ -220,7 +220,7 @@ internal class PluginImageCache : IInternalDisposableService
                 if (texture != null)
                     this.pluginIconMap[manifest.InternalName] = new LoadedIcon(texture, DateTime.Now);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Log.Error(ex, $"An unexpected error occurred with the icon for {manifest.InternalName}");
                 Log.Verbose($"An unexpected error occurred with the icon for {manifest.InternalName}");
@@ -259,7 +259,7 @@ internal class PluginImageCache : IInternalDisposableService
             {
                 await this.DownloadPluginImagesAsync(target, plugin, manifest, isThirdParty, requestedFrame);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Log.Error(ex, $"An unexpected error occurred with the images for {manifest.InternalName}");
                 Log.Verbose($"An unexpected error occurred with the images for {manifest.InternalName}");

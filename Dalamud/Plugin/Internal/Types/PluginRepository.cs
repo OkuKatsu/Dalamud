@@ -12,8 +12,6 @@ using Dalamud.Logging.Internal;
 using Dalamud.Networking.Http;
 using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Utility;
-using Microsoft.Extensions.Caching.Abstractions;
-using Microsoft.Extensions.Caching.InMemory;
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal.Types;
@@ -37,14 +35,6 @@ internal class PluginRepository
     private static readonly ModuleLog Log = new("PLUGINR");
 
     private readonly HttpClient httpClient;
-
-    private static readonly InMemoryCacheHandler CacheHandler = new(
-        new SocketsHttpHandler
-        {
-            AutomaticDecompression = DecompressionMethods.All,
-            ConnectCallback        = Service<HappyHttpClient>.Get().SharedHappyEyeballsCallback.ConnectCallback
-        },
-        CacheExpirationProvider.CreateSimple(TimeSpan.FromHours(3), TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0)));
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="PluginRepository" /> class.
@@ -130,60 +120,75 @@ internal class PluginRepository
     /// <summary>
     ///     Reload the plugin master asynchronously in a task.
     /// </summary>
-    /// <param name="skipCache">Skip MemoryCache.</param>
     /// <returns>The new state.</returns>
-    public async Task ReloadPluginMasterAsync(bool skipCache)
+    public async Task ReloadPluginMasterAsync()
     {
-        State        = PluginRepositoryState.InProgress;
-        PluginMaster = new List<RemotePluginManifest>().AsReadOnly();
+        this.State        = PluginRepositoryState.InProgress;
+        this.PluginMaster = new List<RemotePluginManifest>().AsReadOnly();
 
         try
         {
-            Log.Information($"Fetching repo: {PluginMasterUrl}");
+            Log.Information($"Fetching repo: {this.PluginMasterUrl}");
 
-            if (skipCache)
-            {
-                CacheHandler.InvalidateCache(new Uri(PluginMasterUrl));
-                Log.Information($"Cache Clear: {PluginMasterUrl}");
-            }
-
-            // using var response = await HttpClient.GetAsync(this.PluginMasterUrl);
-            using var response = await GetPluginMaster(PluginMasterUrl);
+            using var response = await this.GetPluginMaster(this.PluginMasterUrl);
 
             response.EnsureSuccessStatusCode();
 
             var data         = await response.Content.ReadAsStringAsync();
             var pluginMaster = JsonConvert.DeserializeObject<List<RemotePluginManifest>>(data);
 
-            if (pluginMaster == null) throw new Exception("Deserialized PluginMaster was null.");
+            if (pluginMaster == null) { throw new Exception("Deserialized PluginMaster was null."); }
 
             pluginMaster.Sort((pm1, pm2) => string.Compare(pm1.Name, pm2.Name, StringComparison.Ordinal));
 
             // Set the source for each remote manifest. Allows for checking if is 3rd party.
-            foreach (var manifest in pluginMaster) manifest.SourceRepo = this;
+            foreach (var manifest in pluginMaster) { manifest.SourceRepo = this; }
 
             var pm       = Service<PluginManager>.Get();
             var official = pm.Repos.First();
             Debug.Assert(!official.IsThirdParty, "First repository should be official repository");
 
-            PluginMaster = pluginMaster.Where(IsValidManifest).ToList().AsReadOnly();
+            if (official.State == PluginRepositoryState.Success && this.IsThirdParty)
+            {
+                pluginMaster = pluginMaster.Where(thisRepoEntry =>
+                {
+                    if (official.PluginMaster!.Any(officialRepoEntry =>
+                                                       string.Equals(thisRepoEntry.InternalName, officialRepoEntry.InternalName,
+                                                                     StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        Log.Warning(
+                            "The repository {RepoName} tried to replace the plugin {PluginName}, which is already installed through the official repo - this is no longer allowed for security reasons. " +
+                            "Please reach out if you have an use case for this.",
+                            this.PluginMasterUrl,
+                            thisRepoEntry.InternalName);
+                        return false;
+                    }
+
+                    return true;
+                }).ToList();
+            }
+            else if (this.IsThirdParty)
+            {
+                Log.Warning("Official repository not loaded - couldn't check for overrides!");
+                this.State = PluginRepositoryState.Fail;
+                return;
+            }
+
+            this.PluginMaster = pluginMaster.Where(this.IsValidManifest).ToList().AsReadOnly();
 
             // API9 HACK: Force IsHide to false, we should remove that
-            if (!IsThirdParty)
-                foreach (var manifest in PluginMaster)
-                    manifest.IsHide = false;
+            if (!this.IsThirdParty)
+            {
+                foreach (var manifest in this.PluginMaster) { manifest.IsHide = false; }
+            }
 
-            Log.Information($"Successfully fetched repo: {PluginMasterUrl}");
-            State = PluginRepositoryState.Success;
-
-            var stats = CacheHandler.StatsProvider.GetStatistics().Total;
-            Log.Information(
-                $"Cache: TotalRequests:{stats.TotalRequests}/CacheHit:{stats.CacheHit}/CacheMiss:{stats.CacheMiss}");
+            Log.Information($"Successfully fetched repo: {this.PluginMasterUrl}");
+            this.State = PluginRepositoryState.Success;
         }
         catch (Exception ex)
         {
-            Log.Error(ex, $"PluginMaster failed: {PluginMasterUrl}");
-            State = PluginRepositoryState.Fail;
+            Log.Error(ex, $"PluginMaster failed: {this.PluginMasterUrl}");
+            this.State = PluginRepositoryState.Fail;
         }
     }
 

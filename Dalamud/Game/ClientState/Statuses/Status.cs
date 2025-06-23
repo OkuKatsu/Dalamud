@@ -1,7 +1,7 @@
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
-
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Lumina.Excel;
 
 namespace Dalamud.Game.ClientState.Statuses;
@@ -42,8 +42,10 @@ public unsafe class Status
 
     /// <summary>
     /// Gets the stack count of this status.
+    /// Only valid if this is a non-food status.
     /// </summary>
-    public byte StackCount => this.Struct->StackCount;
+    [Obsolete($"Replaced with {nameof(Param)}", true)]
+    public byte StackCount => (byte)this.Struct->Param;
 
     /// <summary>
     /// Gets the time remaining of this status.
@@ -53,7 +55,7 @@ public unsafe class Status
     /// <summary>
     /// Gets the source ID of this status.
     /// </summary>
-    public uint SourceId => this.Struct->SourceId;
+    public GameObjectId SourceId => this.Struct->SourceObject;
 
     /// <summary>
     /// Gets the source actor associated with this status.

@@ -22,6 +22,7 @@ namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
 public class SettingsTabAutoUpdates : SettingsTab
 {
     private AutoUpdateBehavior behavior;
+    private bool updateDisabledPlugins;
     private bool checkPeriodically;
     private bool chatNotification;
     private string pickerSearch = string.Empty;
@@ -66,6 +67,7 @@ public class SettingsTabAutoUpdates : SettingsTab
 
         ImGuiHelpers.ScaledDummy(8);
 
+        ImGui.Checkbox(Loc.Localize("DalamudSettingsAutoUpdateDisabledPlugins", "自动更新当时被禁用的插件"), ref this.updateDisabledPlugins);
         ImGui.Checkbox(Loc.Localize("DalamudSettingsAutoUpdateChatMessage", "在聊天栏显示可用更新通知"), ref this.chatNotification);
         ImGui.Checkbox(Loc.Localize("DalamudSettingsAutoUpdatePeriodically", "游戏运行时定期检查更新"), ref this.checkPeriodically);
         ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdatePeriodicallyHint",
@@ -237,6 +239,7 @@ public class SettingsTabAutoUpdates : SettingsTab
         var configuration = Service<DalamudConfiguration>.Get();
 
         this.behavior = configuration.AutoUpdateBehavior ?? AutoUpdateBehavior.None;
+        this.updateDisabledPlugins = configuration.UpdateDisabledPlugins;
         this.chatNotification = configuration.SendUpdateNotificationToChat;
         this.checkPeriodically = configuration.CheckPeriodicallyForUpdates;
         this.autoUpdatePreferences = configuration.PluginAutoUpdatePreferences;
@@ -249,6 +252,7 @@ public class SettingsTabAutoUpdates : SettingsTab
         var configuration = Service<DalamudConfiguration>.Get();
 
         configuration.AutoUpdateBehavior = this.behavior;
+        configuration.UpdateDisabledPlugins = this.updateDisabledPlugins;
         configuration.SendUpdateNotificationToChat = this.chatNotification;
         configuration.CheckPeriodicallyForUpdates = this.checkPeriodically;
         configuration.PluginAutoUpdatePreferences = this.autoUpdatePreferences;
