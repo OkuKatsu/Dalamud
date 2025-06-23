@@ -16,12 +16,12 @@ public static class ClientLanguageExtensions
     {
         return language switch
         {
-            ClientLanguage.Japanese => Lumina.Data.Language.Japanese,
-            ClientLanguage.English => Lumina.Data.Language.English,
-            ClientLanguage.German => Lumina.Data.Language.German,
-            ClientLanguage.French => Lumina.Data.Language.French,
+            ClientLanguage.Japanese          => Lumina.Data.Language.Japanese,
+            ClientLanguage.English           => Lumina.Data.Language.English,
+            ClientLanguage.German            => Lumina.Data.Language.German,
+            ClientLanguage.French            => Lumina.Data.Language.French,
             ClientLanguage.ChineseSimplified => Lumina.Data.Language.ChineseSimplified,
-            _ => throw new ArgumentOutOfRangeException(nameof(language)),
+            _                                => throw new ArgumentOutOfRangeException(nameof(language)),
         };
     }
 
@@ -35,10 +35,11 @@ public static class ClientLanguageExtensions
     {
         return value switch
         {
-            ClientLanguage.Japanese => "ja",
-            ClientLanguage.English => "en",
-            ClientLanguage.German => "de",
-            ClientLanguage.French => "fr",
+            ClientLanguage.Japanese          => "ja",
+            ClientLanguage.English           => "en",
+            ClientLanguage.German            => "de",
+            ClientLanguage.French            => "fr",
+            ClientLanguage.ChineseSimplified => "chs",
             _ => throw new ArgumentOutOfRangeException(nameof(value)),
         };
     }
@@ -53,11 +54,12 @@ public static class ClientLanguageExtensions
     {
         return value switch
         {
-            "ja" => ClientLanguage.Japanese,
-            "en" => ClientLanguage.English,
-            "de" => ClientLanguage.German,
-            "fr" => ClientLanguage.French,
-            _ => throw new ArgumentOutOfRangeException(nameof(value)),
+            "ja"  => ClientLanguage.Japanese,
+            "en"  => ClientLanguage.English,
+            "de"  => ClientLanguage.German,
+            "fr"  => ClientLanguage.French,
+            "chs" => ClientLanguage.ChineseSimplified,
+            _     => throw new ArgumentOutOfRangeException(nameof(value)),
         };
     }
 }
