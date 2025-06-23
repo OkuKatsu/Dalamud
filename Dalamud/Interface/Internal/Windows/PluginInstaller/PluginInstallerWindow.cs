@@ -1644,9 +1644,9 @@ internal class PluginInstallerWindow : Window, IDisposable
                             if (!Service<DalamudConfiguration>.Get().DoPluginTest)
                                 continue;
                             break;
-                        case PluginCategoryManager.CategoryInfo.AppearCondition.AnyHiddenPlugins:
-                            if (!this.hasHiddenPlugins)
-                                continue;
+                                                  case PluginCategoryManager.CategoryInfo.AppearCondition.AnyHiddenPlugins:
+                             if (!this.hasHiddenPlugins)
+                                  continue;
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();
@@ -4112,434 +4112,235 @@ internal class PluginInstallerWindow : Window, IDisposable
     internal static class Locs
     {
         #region Window Title
-
-        public static string WindowTitle => Loc.Localize("InstallerHeader", "Plugin Installer");
-
-        public static string WindowTitleMod_Testing => Loc.Localize("InstallerHeaderTesting", " (TESTING)");
-
+        public static string WindowTitle => "插件安装器";
+        public static string WindowTitleMod_Testing => " (测试版)";
         #endregion
 
         #region Header
-
-        public static string Header_Hint => Loc.Localize("InstallerHint", "This window allows you to install and remove Dalamud plugins.\nThey are made by the community.");
-
-        public static string Header_SearchPlaceholder => Loc.Localize("InstallerSearch", "Search");
-
+        public static string Header_Hint => "此窗口用于安装和移除 Dalamud 插件。\n这些插件由社区制作。";
+        public static string Header_SearchPlaceholder => "搜索";
         #endregion
 
         #region SortBy
-
         public static string SortBy_SearchScore => "搜索权重";
-
-        public static string SortBy_Alphabetical => Loc.Localize("InstallerAlphabetical", "Alphabetical");
-
-        public static string SortBy_DownloadCounts => Loc.Localize("InstallerDownloadCount", "Download Count");
-
-        public static string SortBy_LastUpdate => Loc.Localize("InstallerLastUpdate", "Last Update");
-
-        public static string SortBy_NewOrNot => Loc.Localize("InstallerNewOrNot", "New or not");
-
-        public static string SortBy_NotInstalled => Loc.Localize("InstallerNotInstalled", "Not Installed");
-
-        public static string SortBy_EnabledDisabled => Loc.Localize("InstallerEnabledDisabled", "Enabled/Disabled");
-
-        public static string SortBy_ProfileOrNot => Loc.Localize("InstallerProfileOrNot", "In a collection");
-
-        public static string SortBy_Label => Loc.Localize("InstallerSortBy", "Sort By");
-
+        public static string SortBy_Alphabetical => "按字母顺序";
+        public static string SortBy_DownloadCounts => "下载次数";
+        public static string SortBy_LastUpdate => "最后更新";
+        public static string SortBy_NewOrNot => "新插件优先";
+        public static string SortBy_NotInstalled => "未安装优先";
+        public static string SortBy_EnabledDisabled => "已启用/已禁用";
+        public static string SortBy_ProfileOrNot => "在合集中";
+        public static string SortBy_Label => "排序方式";
         #endregion
 
         #region Tab body
-
-        public static string TabBody_LoadingPlugins => Loc.Localize("InstallerLoading", "Loading plugins...");
-
-        public static string TabBody_DownloadFailed => Loc.Localize("InstallerDownloadFailed", "Download failed.");
-
-        public static string TabBody_SafeMode => Loc.Localize("InstallerSafeMode", "Dalamud is running in Plugin Safe Mode, restart to activate plugins.");
-
-        public static string TabBody_NoPluginsTesting => Loc.Localize("InstallerNoPluginsTesting", "You aren't testing any plugins at the moment!\nYou can opt in to testing versions in the plugin context menu.");
-
-        public static string TabBody_NoPluginsInstalled =>
-            string.Format(Loc.Localize("InstallerNoPluginsInstalled", "You don't have any plugins installed yet!\nYou can install them from the \"{0}\" tab."), PluginCategoryManager.Locs.Category_All);
-
-        public static string TabBody_NoPluginsAvailable => Loc.Localize("InstallerNoPluginsAvailable", "No plugins are available at the moment.");
-
-        public static string TabBody_NoPluginsUpdateable => Loc.Localize("InstallerNoPluginsUpdate", "No plugins have updates available at the moment.");
-
-        public static string TabBody_NoPluginsDev => Loc.Localize("InstallerNoPluginsDev", "You don't have any dev plugins. Add them from the settings.");
-
+        public static string TabBody_LoadingPlugins => "正在加载插件...";
+        public static string TabBody_DownloadFailed => "下载失败。";
+        public static string TabBody_SafeMode => "Dalamud 正在安全模式下运行，重启游戏以激活插件。";
+        public static string TabBody_NoPluginsTesting => "当前无测试中的插件。\n可在插件上下文菜单中选择加入测试版。";
+        public static string TabBody_NoPluginsInstalled => "未安装任何插件。\n可从\"所有插件\"标签页安装。";
+        public static string TabBody_NoPluginsAvailable => "当前无可用插件。";
+        public static string TabBody_NoPluginsUpdateable => "当前无可更新插件。";
+        public static string TabBody_NoPluginsDev => "无开发版插件。请从设置中添加。";
         #endregion
 
         #region Search text
-
-        public static string TabBody_SearchNoMatching => Loc.Localize("InstallerNoMatching", "No plugins were found matching your search.");
-
-        public static string TabBody_SearchNoCompatible => Loc.Localize("InstallerNoCompatible", "No compatible plugins were found :( Please restart your game and try again.");
-
-        public static string TabBody_SearchNoInstalled => Loc.Localize("InstallerNoInstalled", "No plugins are currently installed. You can install them from the \"All Plugins\" tab.");
-
-        public static string TabBody_NoMoreResultsFor(string query) => Loc.Localize("InstallerNoMoreResultsForQuery", "No more search results for \"{0}\".").Format(query);
-
-        public static string TabBody_ChangelogNone => Loc.Localize("InstallerNoChangelog", "None of your installed plugins have a changelog.");
-
-        public static string TabBody_ChangelogError => Loc.Localize("InstallerChangelogError", "Could not download changelogs.");
-
+        public static string TabBody_SearchNoMatching => "未找到符合搜索条件的插件。";
+        public static string TabBody_SearchNoCompatible => "未找到兼容的插件。请重启游戏并重试。";
+        public static string TabBody_SearchNoInstalled => "当前没有安装任何插件。可从\"所有插件\"标签页安装。";
+        public static string TabBody_NoMoreResultsFor(string query) => "无更多有关 \"{0}\" 的搜索结果".Format(query);
+        public static string TabBody_ChangelogNone => "已安装的插件均无更新日志。";
+        public static string TabBody_ChangelogError => "无法下载更新日志。";
         #endregion
 
         #region Plugin title text
-
         public static string PluginTitleMod_Installed => " (已安装)";
-
         public static string PluginTitleMod_Disabled => " (已禁用)";
-
         public static string PluginTitleMod_NoService => " (已过时)";
-
         public static string PluginTitleMod_Unloaded => " (已卸载)";
-
         public static string PluginTitleMod_HasUpdate => " (可更新)";
-
         public static string PluginTitleMod_Updated => " (已更新)";
-
         public static string PluginTitleMod_TestingVersion => " (测试版)";
-
         public static string PluginTitleMod_TestingExclusive => " (仅限测试版)";
-
         public static string PluginTitleMod_TestingAvailable => " (存在测试版)";
-
         public static string PluginTitleMod_DevPlugin => " (开发版)";
-
         public static string PluginTitleMod_Incompatible => " (不兼容)";
-
         public static string PluginTitleMod_UpdateFailed => " (更新失败)";
-
         public static string PluginTitleMod_LoadError => " (加载失败)";
-
         public static string PluginTitleMod_UnloadError => " (卸载错误)";
-
         public static string PluginTitleMod_OutdatedError => " (API 版本不对应)";
-
         public static string PluginTitleMod_BannedError => " (自动禁用)";
-
         public static string PluginTitleMod_OrphanedError => " (未知仓库)";
-
         public static string PluginTitleMod_ScheduledForDeletion => " (计划删除)";
-
-        public static string PluginTitleMod_New => Loc.Localize("InstallerNewPlugin ", " 新插件!");
-
+        public static string PluginTitleMod_New => " 新插件!";
         #endregion
 
         #region Plugin context menu
-
-        public static string PluginContext_TestingOptIn => Loc.Localize("InstallerTestingOptIn", "Receive plugin testing versions");
-
-        public static string PluginContext_InstallTestingVersion => Loc.Localize("InstallerInstallTestingVersion", "Install testing version");
-
-        public static string PluginContext_MarkAllSeen => Loc.Localize("InstallerMarkAllSeen", "Mark all as seen");
-
-        public static string PluginContext_HidePlugin => Loc.Localize("InstallerHidePlugin", "Hide from installer");
-
-        public static string PluginContext_UnhidePlugin => Loc.Localize("InstallerUnhidePlugin", "Unhide from installer");
-
-        public static string PluginContext_DeletePluginConfig => Loc.Localize("InstallerDeletePluginConfig", "Reset plugin data");
-
-        public static string PluginContext_DeletePluginConfigReload => Loc.Localize("InstallerDeletePluginConfigReload", "Reset plugin data and reload");
-
+        public static string PluginContext_TestingOptIn => "接收插件测试版";
+        public static string PluginContext_InstallTestingVersion => "安装测试版";
+        public static string PluginContext_MarkAllSeen => "标记所有为已查看";
+        public static string PluginContext_HidePlugin => "从安装器中隐藏";
+        public static string PluginContext_UnhidePlugin => "在安装器中显示";
+        public static string PluginContext_DeletePluginConfig => "重置插件数据";
+        public static string PluginContext_DeletePluginConfigReload => "重置插件数据并重新加载";
         #endregion
 
         #region Plugin body
-
-        public static string PluginBody_AuthorWithoutDownloadCount(string author) => Loc.Localize("InstallerAuthorWithoutDownloadCount", " by {0}").Format(author);
-
-        public static string PluginBody_AuthorWithDownloadCount(string author, long count) => Loc.Localize("InstallerAuthorWithDownloadCount", " by {0} ({1} downloads)").Format(author, count.ToString("N0"));
-
-        public static string PluginBody_AuthorWithDownloadCountUnavailable(string author) => Loc.Localize("InstallerAuthorWithDownloadCountUnavailable", " by {0}").Format(author);
-
-        public static string PluginBody_CurrentChangeLog(Version version) => Loc.Localize("InstallerCurrentChangeLog", "Changelog (v{0})").Format(version);
-
-        public static string PluginBody_UpdateChangeLog(Version version) => Loc.Localize("InstallerUpdateChangeLog", "Available update changelog (v{0})").Format(version);
-
-        public static string PluginBody_DevPluginPath(string path) => Loc.Localize("InstallerDevPluginPath", "From {0}").Format(path);
-
-        public static string PluginBody_Plugin3rdPartyRepo(string url) => Loc.Localize("InstallerPlugin3rdPartyRepo", "From custom plugin repository {0}").Format(url);
-
-        public static string PluginBody_Outdated => Loc.Localize("InstallerOutdatedPluginBody ", "This plugin is outdated and incompatible.");
-
-        public static string PluginBody_Incompatible => Loc.Localize("InstallerIncompatiblePluginBody ", "This plugin is incompatible with your version of Dalamud. Please attempt to restart your game.");
-
-        public static string PluginBody_Outdated_WaitForUpdate => Loc.Localize("InstallerOutdatedWaitForUpdate", "Please wait for it to be updated by its author.");
-
-        public static string PluginBody_Outdated_CanNowUpdate => Loc.Localize("InstallerOutdatedCanNowUpdate", "An update is available for installation.");
-
-        public static string PluginBody_Orphaned => Loc.Localize("InstallerOrphanedPluginBody ", "This plugin's source repository is no longer available. You may need to reinstall it from its repository, or re-add the repository.");
-
-        public static string PluginBody_NoServiceOfficial => Loc.Localize("InstallerNoServiceOfficialPluginBody", "This plugin is no longer being maintained. It will still work, but there will be no further updates and you can't reinstall it.");
-
-        public static string PluginBody_NoServiceThird => Loc.Localize("InstallerNoServiceThirdPluginBody", "This plugin is no longer being serviced by its source repo. You may have to look for an updated version in another repo.");
-
-        public static string PluginBody_NoServiceThirdCrossUpdate => Loc.Localize("InstallerNoServiceThirdCrossUpdatePluginBody", "This plugin is no longer being serviced by its source repo. An update is available and will update it to a version from the official repository.");
-
-        public static string PluginBody_LoadFailed => Loc.Localize("InstallerLoadFailedPluginBody ", "This plugin failed to load. Please contact the author for more information.");
-
-        public static string PluginBody_Banned => Loc.Localize("InstallerBannedPluginBody ", "This plugin was automatically disabled due to incompatibilities and is not available.");
-
-        public static string PluginBody_Policy => Loc.Localize("InstallerPolicyPluginBody ", "Plugin loads for this type of plugin were manually disabled.");
-
-        public static string PluginBody_BannedReason(string message) =>
-            Loc.Localize("InstallerBannedPluginBodyReason ", "This plugin was automatically disabled: {0}").Format(message);
-
+        public static string PluginBody_AuthorWithoutDownloadCount(string author) => $" 作者：{author}";
+        public static string PluginBody_AuthorWithDownloadCount(string author, long count) => $" 作者：{author} ({count:N0} 次下载)";
+        public static string PluginBody_AuthorWithDownloadCountUnavailable(string author) => $" 作者：{author}";
+        public static string PluginBody_CurrentChangeLog(Version version) => $"更新日志 (v{version})";
+        public static string PluginBody_UpdateChangeLog(Version version) => $"可用更新日志 (v{version})";
+        public static string PluginBody_DevPluginPath(string path) => $"来源：{path}";
+        public static string PluginBody_Plugin3rdPartyRepo(string url) => $"来源：自定义插件仓库 {url}";
+        public static string PluginBody_Outdated => "此插件已过时且不兼容。";
+        public static string PluginBody_Incompatible => "此插件与当前 Dalamud 版本不兼容。请尝试重启游戏。";
+        public static string PluginBody_Outdated_WaitForUpdate => "请等待作者更新。";
+        public static string PluginBody_Outdated_CanNowUpdate => "有可用更新可安装。";
+        public static string PluginBody_Orphaned => "此插件的源仓库不再可用。可能需要从其仓库重新安装，或重新添加仓库。";
+        public static string PluginBody_NoServiceOfficial => "此插件不再维护。它仍然可以工作，但不会有进一步的更新，且无法重新安装。";
+        public static string PluginBody_NoServiceThird => "此插件不再由其源仓库维护。可能需要在其他仓库中寻找更新版本。";
+        public static string PluginBody_NoServiceThirdCrossUpdate => "此插件不再由其源仓库维护。有可用更新，将更新到官方仓库的版本。";
+        public static string PluginBody_LoadFailed => "此插件加载失败。请联系作者获取更多信息。";
+        public static string PluginBody_Banned => "此插件因不兼容而被自动禁用，目前不可用。";
+        public static string PluginBody_Policy => "此类型的插件加载已被手动禁用。";
+        public static string PluginBody_BannedReason(string message) => $"此插件已被自动禁用：{message}";
         #endregion
 
         #region Plugin buttons
-
-        public static string PluginButton_InstallVersion(string version) => Loc.Localize("InstallerInstall", "Install v{0}").Format(version);
-
-        public static string PluginButton_Working => Loc.Localize("InstallerWorking", "Working");
-
-        public static string PluginButton_Disable => Loc.Localize("InstallerDisable", "Disable");
-
-        public static string PluginButton_Load => Loc.Localize("InstallerLoad", "Load");
-
-        public static string PluginButton_Unload => Loc.Localize("InstallerUnload", "Unload");
-
-        public static string PluginButton_SafeMode => Loc.Localize("InstallerSafeModeButton", "Can't change in safe mode");
-
-        public static string PluginButton_OpenUi => Loc.Localize("InstallerOpenPluginUi", "Open");
-
-        public static string PluginButton_OpenSettings => Loc.Localize("InstallerOpenPluginSettings", "Settings");
-
+        public static string PluginButton_InstallVersion(string version) => $"安装 v{version}";
+        public static string PluginButton_Working => "处理中";
+        public static string PluginButton_Disable => "禁用";
+        public static string PluginButton_Load => "加载";
+        public static string PluginButton_Unload => "卸载";
+        public static string PluginButton_SafeMode => "安全模式下无法更改";
+        public static string PluginButton_OpenUi => "打开";
+        public static string PluginButton_OpenSettings => "设置";
         #endregion
 
         #region Plugin button tooltips
-
-        public static string PluginButtonToolTip_OpenUi => Loc.Localize("InstallerTooltipOpenUi", "Open this plugin's interface");
-
-        public static string PluginButtonToolTip_OpenConfiguration => Loc.Localize("InstallerTooltipOpenConfig", "Open this plugin's settings");
-
-        public static string PluginButtonToolTip_PickProfiles => Loc.Localize("InstallerPickProfiles", "Pick collections for this plugin");
-
-        public static string PluginButtonToolTip_ProfilesNotSupported => Loc.Localize("InstallerProfilesNotSupported", "This plugin does not support collections");
-
-        public static string PluginButtonToolTip_StartOnBoot => Loc.Localize("InstallerStartOnBoot", "Start on boot");
-
-        public static string PluginButtonToolTip_AutomaticReloading => Loc.Localize("InstallerAutomaticReloading", "Automatic reloading");
-
-        public static string PluginButtonToolTip_NotifyForErrors => Loc.Localize("InstallerNotifyForErrors", "Show Dalamud notifications when this plugin is creating errors");
-
-        public static string PluginButtonToolTip_DeletePlugin => Loc.Localize("InstallerDeletePlugin ", "Delete plugin");
-
-        public static string PluginButtonToolTip_DeletePluginRestricted => Loc.Localize("InstallerDeletePluginRestricted", "Cannot delete right now - please restart the game.");
-
-        public static string PluginButtonToolTip_DeletePluginScheduled => Loc.Localize("InstallerDeletePluginScheduled", "Delete plugin on next restart");
-
-        public static string PluginButtonToolTip_DeletePluginScheduledCancel => Loc.Localize("InstallerDeletePluginScheduledCancel", "Cancel scheduled deletion");
-
-        public static string PluginButtonToolTip_DeletePluginLoaded => Loc.Localize("InstallerDeletePluginLoaded", "Disable this plugin before deleting it.");
-
-        public static string PluginButtonToolTip_VisitPluginUrl => Loc.Localize("InstallerVisitPluginUrl", "Visit plugin URL");
-
-        public static string PluginButtonToolTip_UpdateSingle(string version) => Loc.Localize("InstallerUpdateSingle", "Update to {0}").Format(version);
-
-        public static string PluginButtonToolTip_LoadUnloadFailed => Loc.Localize("InstallerLoadUnloadFailedTooltip", "Plugin load/unload failed, please restart your game and try again.");
-
-        public static string PluginButtonToolTip_NeedsToBeInDefault => Loc.Localize("InstallerUnloadNeedsToBeInDefault", "This plugin is in one or more collections. If you want to enable or disable it, please do so by enabling or disabling the collections it is in.\nIf you want to manage it manually, remove it from all collections.");
-
-        public static string PluginButtonToolTip_NeedsToBeInSingleProfile => Loc.Localize("InstallerUnloadNeedsToBeInSingleProfile", "This plugin is in more than one collection. If you want to enable or disable it, please do so by enabling or disabling the collections it is in.\nIf you want to manage it here, make sure it is only in a single collection.");
-
-        public static string PluginButtonToolTip_SafeMode => Loc.Localize("InstallerButtonSafeModeTooltip", "Cannot enable plugins in safe mode.");
-
-        public static string PluginButtonToolTip_SingleProfileDisabled(string name) => Loc.Localize("InstallerSingleProfileDisabled", "The collection '{0}' which contains this plugin is disabled.\nPlease enable it in the collections manager to toggle the plugin individually.").Format(name);
-
+        public static string PluginButtonToolTip_OpenUi => "打开此插件的界面";
+        public static string PluginButtonToolTip_OpenConfiguration => "打开此插件的设置";
+        public static string PluginButtonToolTip_PickProfiles => "为此插件选择合集";
+        public static string PluginButtonToolTip_ProfilesNotSupported => "此插件不支持合集";
+        public static string PluginButtonToolTip_StartOnBoot => "启动时加载";
+        public static string PluginButtonToolTip_AutomaticReloading => "自动重新加载";
+        public static string PluginButtonToolTip_NotifyForErrors => "当此插件产生错误时显示 Dalamud 通知";
+        public static string PluginButtonToolTip_DeletePlugin => "删除插件";
+        public static string PluginButtonToolTip_DeletePluginRestricted => "目前无法删除 - 请重启游戏。";
+        public static string PluginButtonToolTip_DeletePluginScheduled => "下次重启时删除插件";
+        public static string PluginButtonToolTip_DeletePluginScheduledCancel => "取消计划删除";
+        public static string PluginButtonToolTip_DeletePluginLoaded => "删除前请先禁用此插件。";
+        public static string PluginButtonToolTip_VisitPluginUrl => "访问插件网址";
+        public static string PluginButtonToolTip_UpdateSingle(string version) => $"更新到 {version}";
+        public static string PluginButtonToolTip_LoadUnloadFailed => "插件加载/卸载失败，请重启游戏并重试。";
+        public static string PluginButtonToolTip_NeedsToBeInDefault => "此插件在一个或多个合集中。启用或禁用需通过启用或禁用包含它的合集。\n若要手动管理，请将其从所有合集中移除。";
+        public static string PluginButtonToolTip_NeedsToBeInSingleProfile => "此插件在多个合集中。启用或禁用需通过启用或禁用包含它的合集。\n若要在此处管理，请确保它只在单个合集中。";
+        public static string PluginButtonToolTip_SafeMode => "安全模式下无法启用插件。";
+        public static string PluginButtonToolTip_SingleProfileDisabled(string name) => $"包含此插件的合集'{name}'已禁用。\n请在合集管理器中启用它，以便单独切换插件。";
         #endregion
 
         #region Notifications
-
-        public static string Notifications_PluginInstalledTitle => Loc.Localize("NotificationsPluginInstalledTitle", "Plugin installed!");
-
-        public static string Notifications_PluginInstalled(string name) => Loc.Localize("NotificationsPluginInstalled", "'{0}' was successfully installed.").Format(name);
-
-        public static string Notifications_PluginNotInstalledTitle => Loc.Localize("NotificationsPluginNotInstalledTitle", "Plugin not installed!");
-
-        public static string Notifications_PluginNotInstalled(string name) => Loc.Localize("NotificationsPluginNotInstalled", "'{0}' failed to install.").Format(name);
-
-        public static string Notifications_NoUpdatesFoundTitle => Loc.Localize("NotificationsNoUpdatesFoundTitle", "No updates found!");
-
-        public static string Notifications_NoUpdatesFound => Loc.Localize("NotificationsNoUpdatesFound", "No updates were found.");
-
-        public static string Notifications_UpdatesInstalledTitle => Loc.Localize("NotificationsUpdatesInstalledTitle", "Updates installed!");
-
+        public static string Notifications_PluginInstalledTitle => "插件已安装";
+        public static string Notifications_PluginInstalled(string name) => $"'{name}' 已成功安装。";
+        public static string Notifications_PluginNotInstalledTitle => "插件未安装";
+        public static string Notifications_PluginNotInstalled(string name) => $"'{name}' 安装失败。";
+        public static string Notifications_NoUpdatesFoundTitle => "未找到更新";
+        public static string Notifications_NoUpdatesFound => "未找到任何更新。";
+        public static string Notifications_UpdatesInstalledTitle => "更新已安装";
         public static string Notifications_UpdatesInstalled(List<PluginUpdateStatus> updates)
-            => Loc.Localize("NotificationsUpdatesInstalled", "Updates for {0} of your plugins were installed.\n\n{1}")
-                  .Format(updates.Count, string.Join(", ", updates.Select(x => x.InternalName)));
-
-        public static string Notifications_PluginDisabledTitle => Loc.Localize("NotificationsPluginDisabledTitle", "Plugin disabled!");
-
-        public static string Notifications_PluginDisabled(string name) => Loc.Localize("NotificationsPluginDisabled", "'{0}' was disabled.").Format(name);
-
-        public static string Notifications_PluginEnabledTitle => Loc.Localize("NotificationsPluginEnabledTitle", "Plugin enabled!");
-
-        public static string Notifications_PluginEnabled(string name) => Loc.Localize("NotificationsPluginEnabled", "'{0}' was enabled.").Format(name);
-
+            => $"{updates.Count} 个插件已更新。\n\n{string.Join(", ", updates.Select(x => x.InternalName))}";
+        public static string Notifications_PluginDisabledTitle => "插件已禁用";
+        public static string Notifications_PluginDisabled(string name) => $"'{name}' 已被禁用。";
+        public static string Notifications_PluginEnabledTitle => "插件已启用";
+        public static string Notifications_PluginEnabled(string name) => $"'{name}' 已被启用。";
         #endregion
 
         #region Footer
-
-        public static string FooterButton_UpdatePlugins => Loc.Localize("InstallerUpdatePlugins", "Update plugins");
-
-        public static string FooterButton_UpdateSafeMode => Loc.Localize("InstallerUpdateSafeMode", "Can't update in safe mode");
-
-        public static string FooterButton_InProgress => Loc.Localize("InstallerInProgress", "Install in progress...");
-
-        public static string FooterButton_NoUpdates => Loc.Localize("InstallerNoUpdates", "No updates found!");
-
-        public static string FooterButton_UpdateComplete(int count) => Loc.Localize("InstallerUpdateComplete", "{0} plugins updated!").Format(count);
-
-        public static string FooterButton_Settings => Loc.Localize("InstallerSettings", "Settings");
-
-        public static string FooterButton_ScanDevPlugins => Loc.Localize("InstallerScanDevPlugins", "Scan Dev Plugins");
-
-        public static string FooterButton_Close => Loc.Localize("InstallerClose", "Close");
-
+        public static string FooterButton_UpdatePlugins => "更新插件";
+        public static string FooterButton_UpdateSafeMode => "安全模式下无法更新";
+        public static string FooterButton_InProgress => "安装进行中...";
+        public static string FooterButton_NoUpdates => "未找到更新";
+        public static string FooterButton_UpdateComplete(int count) => $"{count} 个插件已更新";
+        public static string FooterButton_Settings => "设置";
+        public static string FooterButton_ScanDevPlugins => "扫描开发版插件";
+        public static string FooterButton_Close => "关闭";
         #endregion
 
         #region Update modal
-
-        public static string UpdateModal_Title => Loc.Localize("UpdateQuestionModal", "Update Available");
-
-        public static string UpdateModal_UpdateAvailable(string name) => Loc.Localize("UpdateModalUpdateAvailable", "An update for \"{0}\" is available.\nDo you want to update it before enabling?\nUpdates will fix bugs and incompatibilities, and may add new features.").Format(name);
-
-        public static string UpdateModal_Yes => Loc.Localize("UpdateModalYes", "Update plugin");
-
-        public static string UpdateModal_No => Loc.Localize("UpdateModalNo", "Just enable");
-
+        public static string UpdateModal_Title => "可用更新";
+        public static string UpdateModal_UpdateAvailable(string name) => $"插件 \"{name}\" 有可用更新。\n是否在启用前更新？\n更新将修复错误和不兼容问题，并可能添加新功能。";
+        public static string UpdateModal_Yes => "更新插件";
+        public static string UpdateModal_No => "仅启用";
         #endregion
 
         #region Error modal
-
-        public static string ErrorModal_Title => Loc.Localize("InstallerError", "Installer Error");
-
-        public static string ErrorModal_InstallContactAuthor => Loc.Localize(
-            "InstallerContactAuthor",
-            "Please restart your game and try again. If this error occurs again, please contact the plugin author.");
-
-        public static string ErrorModal_InstallFail(string name) => Loc.Localize("InstallerInstallFail", "Failed to install plugin {0}.\n{1}").Format(name, ErrorModal_InstallContactAuthor);
-
-        public static string ErrorModal_SingleUpdateFail(string name, string why) => Loc.Localize("InstallerSingleUpdateFail", "Failed to update plugin {0} ({1}).\n{2}").Format(name, why, ErrorModal_InstallContactAuthor);
-
-        public static string ErrorModal_DeleteConfigFail(string name) => Loc.Localize("InstallerDeleteConfigFail", "Failed to reset the plugin {0}.\n\nThe plugin may not support this action. You can try deleting the configuration manually while the game is shut down - please see the FAQ.").Format(name);
-
-        public static string ErrorModal_EnableFail(string name) => Loc.Localize("InstallerEnableFail", "Failed to enable plugin {0}.\n{1}").Format(name, ErrorModal_InstallContactAuthor);
-
-        public static string ErrorModal_DisableFail(string name) => Loc.Localize("InstallerDisableFail", "Failed to disable plugin {0}.\n{1}").Format(name, ErrorModal_InstallContactAuthor);
-
-        public static string ErrorModal_UnloadFail(string name) => Loc.Localize("InstallerUnloadFail", "Failed to unload plugin {0}.\n{1}").Format(name, ErrorModal_InstallContactAuthor);
-
-        public static string ErrorModal_LoadFail(string name) => Loc.Localize("InstallerLoadFail", "Failed to load plugin {0}.\n{1}").Format(name, ErrorModal_InstallContactAuthor);
-
-        public static string ErrorModal_DeleteFail(string name) => Loc.Localize("InstallerDeleteFail", "Failed to delete plugin {0}.\n{1}").Format(name, ErrorModal_InstallContactAuthor);
-
-        public static string ErrorModal_UpdaterFatal => Loc.Localize("InstallerUpdaterFatal", "Failed to update plugins.\nPlease restart your game and try again. If this error occurs again, please complain.");
-
-        public static string ErrorModal_ProfileApplyFail => Loc.Localize("InstallerProfileApplyFail", "Failed to process collections.\nPlease restart your game and try again. If this error occurs again, please complain.");
-
-        public static string ErrorModal_UpdaterFail(int failCount) => Loc.Localize("InstallerUpdaterFail", "Failed to update {0} plugins.\nPlease restart your game and try again. If this error occurs again, please complain.").Format(failCount);
-
-        public static string ErrorModal_UpdaterFailPartial(int successCount, int failCount) => Loc.Localize("InstallerUpdaterFailPartial", "Updated {0} plugins, failed to update {1}.\nPlease restart your game and try again. If this error occurs again, please complain.").Format(successCount, failCount);
-
-        public static string ErrorModal_HintBlame(string plugins) => Loc.Localize("InstallerErrorPluginInfo", "\n\nThe following plugins caused these issues:\n\n{0}\nYou may try removing these plugins manually and reinstalling them.").Format(plugins);
-
-        // public static string ErrorModal_Hint => Loc.Localize("InstallerErrorHint", "The plugin installer ran into an issue or the plugin is incompatible.\nPlease restart the game and report this error on our discord.");
-
+        public static string ErrorModal_Title => "安装器错误";
+        public static string ErrorModal_InstallContactAuthor => "请重启游戏并重试。如果此错误再次出现，请联系插件作者。";
+        public static string ErrorModal_InstallFail(string name) => $"安装插件 {name} 失败。\n{ErrorModal_InstallContactAuthor}";
+        public static string ErrorModal_SingleUpdateFail(string name, string why) => $"更新插件 {name} 失败 ({why})。\n{ErrorModal_InstallContactAuthor}";
+        public static string ErrorModal_DeleteConfigFail(string name) => $"重置插件 {name} 失败。\n\n该插件可能不支持此操作。可尝试在游戏关闭时手动删除配置 - 请参阅常见问题解答。";
+        public static string ErrorModal_EnableFail(string name) => $"启用插件 {name} 失败。\n{ErrorModal_InstallContactAuthor}";
+        public static string ErrorModal_DisableFail(string name) => $"禁用插件 {name} 失败。\n{ErrorModal_InstallContactAuthor}";
+        public static string ErrorModal_UnloadFail(string name) => $"卸载插件 {name} 失败。\n{ErrorModal_InstallContactAuthor}";
+        public static string ErrorModal_LoadFail(string name) => $"加载插件 {name} 失败。\n{ErrorModal_InstallContactAuthor}";
+        public static string ErrorModal_DeleteFail(string name) => $"删除插件 {name} 失败。\n{ErrorModal_InstallContactAuthor}";
+        public static string ErrorModal_UpdaterFatal => "更新插件失败。\n请重启游戏并重试。如果此错误再次出现，请向开发团队反馈。";
+        public static string ErrorModal_ProfileApplyFail => "处理合集失败。\n请重启游戏并重试。如果此错误再次出现，请向开发团队反馈。";
+        public static string ErrorModal_UpdaterFail(int failCount) => $"更新 {failCount} 个插件失败。\n请重启游戏并重试。如果此错误再次出现，请向开发团队反馈。";
+        public static string ErrorModal_UpdaterFailPartial(int successCount, int failCount) => $"已更新 {successCount} 个插件，{failCount} 个更新失败。\n请重启游戏并重试。如果此错误再次出现，请向开发团队反馈。";
+        public static string ErrorModal_HintBlame(string plugins) => $"\n\n以下插件导致了这些问题：\n\n{plugins}\n可尝试手动删除这些插件并重新安装。";
         #endregion
 
         #region Feedback Modal
-
-        public static string FeedbackModal_Title => Loc.Localize("InstallerFeedback", "Send Feedback");
-
-        public static string FeedbackModal_Text(string pluginName) => Loc.Localize("InstallerFeedbackInfo", "You can send feedback to the developer of \"{0}\" here.").Format(pluginName);
-
-        public static string FeedbackModal_HasUpdate => Loc.Localize("InstallerFeedbackHasUpdate", "A new version of this plugin is available, please update before reporting bugs.");
-
-        public static string FeedbackModal_ContactAnonymous => Loc.Localize("InstallerFeedbackContactAnonymous", "Submit feedback anonymously");
-
-        public static string FeedbackModal_ContactAnonymousWarning => Loc.Localize("InstallerFeedbackContactAnonymousWarning", "No response will be forthcoming.\nUntick \"{0}\" and provide contact information if you need help.").Format(FeedbackModal_ContactAnonymous);
-
-        public static string FeedbackModal_ContactInformation => Loc.Localize("InstallerFeedbackContactInfo", "Contact information");
-
-        public static string FeedbackModal_ContactInformationHelp => Loc.Localize("InstallerFeedbackContactInfoHelp", "Discord usernames and e-mail addresses are accepted.\nIf you submit a Discord username, please join our discord server so that we can reach out to you easier.");
-
-        public static string FeedbackModal_ContactInformationWarning => Loc.Localize("InstallerFeedbackContactInfoWarning", "Do not submit in-game character names.");
-
-        public static string FeedbackModal_ContactInformationRequired => Loc.Localize("InstallerFeedbackContactInfoRequired", "Contact information has not been provided. We require contact information to respond to questions, or to request additional information to troubleshoot problems.");
-
-        public static string FeedbackModal_ContactInformationDiscordButton => Loc.Localize("ContactInformationDiscordButton", "Join XIVLauncher & Dalamud Discord");
-
-        public static string FeedbackModal_ContactInformationDiscordUrl => Loc.Localize("ContactInformationDiscordUrl", "https://goat.place/");
-
-        public static string FeedbackModal_IncludeLastError => Loc.Localize("InstallerFeedbackIncludeLastError", "Include last error message");
-
-        public static string FeedbackModal_IncludeLastErrorHint => Loc.Localize("InstallerFeedbackIncludeLastErrorHint", "This option can give the plugin developer useful feedback on what exactly went wrong.");
-
-        public static string FeedbackModal_Hint => Loc.Localize("InstallerFeedbackHint", "All plugin developers will be able to see your feedback.\nPlease never include any personal or revealing information.\nIf you chose to include the last error message, information like your Windows username may be included.\n\nThe collected feedback is not stored on our end and immediately relayed to Discord.");
-
-        public static string FeedbackModal_NotificationSuccess => Loc.Localize("InstallerFeedbackNotificationSuccess", "Your feedback was sent successfully!");
-
-        public static string FeedbackModal_NotificationError => Loc.Localize("InstallerFeedbackNotificationError", "Your feedback could not be sent.");
-
+        public static string FeedbackModal_Title => "发送反馈";
+        public static string FeedbackModal_Text(string pluginName) => $"可在此处向插件 \"{pluginName}\" 的开发者发送反馈。";
+        public static string FeedbackModal_HasUpdate => "此插件有新版本可用，请在报告问题前先更新。";
+        public static string FeedbackModal_ContactAnonymous => "匿名提交反馈";
+        public static string FeedbackModal_ContactAnonymousWarning => $"将不会收到任何回复。\n如需帮助，请取消勾选 \"{FeedbackModal_ContactAnonymous}\" 并提供联系信息。";
+        public static string FeedbackModal_ContactInformation => "联系信息";
+        public static string FeedbackModal_ContactInformationHelp => "接受 Discord 用户名和电子邮件地址。\n如提交 Discord 用户名，请加入 Discord 服务器，以便更容易联系。";
+        public static string FeedbackModal_ContactInformationWarning => "请勿提交游戏内角色名称。";
+        public static string FeedbackModal_ContactInformationRequired => "未提供联系信息。需要联系信息来回复问题，或请求额外信息以解决问题。";
+        public static string FeedbackModal_ContactInformationDiscordButton => "加入 XIVLauncher & Dalamud Discord";
+        public static string FeedbackModal_ContactInformationDiscordUrl => "https://goat.place/";
+        public static string FeedbackModal_IncludeLastError => "包含最后的错误信息";
+        public static string FeedbackModal_IncludeLastErrorHint => "此选项可以为插件开发者提供关于具体问题的有用反馈。";
+        public static string FeedbackModal_Hint => "所有插件开发者都将能够看到反馈内容。\n请勿包含任何个人或敏感信息。\n如选择包含最后的错误信息，可能会包含诸如 Windows 用户名等信息。\n\n收集的反馈不会存储在服务端，而是直接转发到 Discord。";
+        public static string FeedbackModal_NotificationSuccess => "反馈已成功发送";
+        public static string FeedbackModal_NotificationError => "无法发送反馈";
         #endregion
 
         #region Testing Warning Modal
-
-        public static string TestingWarningModal_Title => Loc.Localize("InstallerTestingWarning", "Warning###InstallerTestingWarning");
-
-        public static string TestingWarningModal_DowngradeBody => Loc.Localize("InstallerTestingWarningDowngradeBody", "Take care! If you opt out of testing for a plugin, you will remain on the testing version until it is deleted and reinstalled, or the non-testing version of the plugin is updated.\nKeep in mind that you may lose the settings for this plugin if you downgrade manually.");
-
+        public static string TestingWarningModal_Title => "警告###InstallerTestingWarning";
+        public static string TestingWarningModal_DowngradeBody => "注意！退出插件测试版后，将继续使用测试版，直到删除并重新安装插件，或者插件的非测试版本更新。\n手动降级可能会丢失此插件的设置。";
         #endregion
 
         #region Delete Plugin Config Warning Modal
-
-        public static string DeletePluginConfigWarningModal_Title => Loc.Localize("InstallerDeletePluginConfigWarning", "Warning###InstallerDeletePluginConfigWarning");
-
-        public static string DeletePluginConfigWarningModal_ExplainTesting() => Loc.Localize("InstallerDeletePluginConfigWarningExplainTesting", "Do not select this option if you are only trying to disable testing!");
-
-        public static string DeletePluginConfigWarningModal_Body(string pluginName) => Loc.Localize("InstallerDeletePluginConfigWarningBody", "Are you sure you want to delete all data and configuration for {0}?\nYou will lose all of your settings for this plugin.").Format(pluginName);
-
-        public static string DeletePluginConfirmWarningModal_Yes => Loc.Localize("InstallerDeletePluginConfigWarningYes", "Yes");
-
-        public static string DeletePluginConfirmWarningModal_No => Loc.Localize("InstallerDeletePluginConfigWarningNo", "No");
-
+        public static string DeletePluginConfigWarningModal_Title => "警告###InstallerDeletePluginConfigWarning";
+        public static string DeletePluginConfigWarningModal_ExplainTesting() => "如仅想禁用测试版，请勿选择此选项！";
+        public static string DeletePluginConfigWarningModal_Body(string pluginName) => $"确定要删除 {pluginName} 的所有数据和配置吗？\n将丢失此插件的所有设置。";
+        public static string DeletePluginConfirmWarningModal_Yes => "是";
+        public static string DeletePluginConfirmWarningModal_No => "否";
         #endregion
 
         #region Plugin Update chatbox
-
-        public static string PluginUpdateHeader_Chatbox => Loc.Localize("DalamudPluginUpdates", "Updates:");
-
+        public static string PluginUpdateHeader_Chatbox => "更新：";
         #endregion
 
         #region Error modal buttons
-
-        public static string ErrorModalButton_Ok => Loc.Localize("OK", "OK");
-
+        public static string ErrorModalButton_Ok => "确定";
         #endregion
 
         #region Other
-
-        public static string SafeModeDisclaimer => Loc.Localize("SafeModeDisclaimer", "You enabled safe mode, no plugins will be loaded.\nYou may delete plugins from the \"Installed plugins\" tab.\nSimply restart your game to disable safe mode.");
-
+        public static string SafeModeDisclaimer => "安全模式已启用，不会加载任何插件。\n可从\"已安装插件\"标签页删除插件。\n重启游戏即可禁用安全模式。";
         #endregion
 
         #region Profiles
-
-        public static string Profiles_CouldNotAdd =>
-            Loc.Localize("InstallerProfilesCouldNotAdd", "Couldn't add plugin to this collection.");
-
-        public static string Profiles_CouldNotRemove =>
-            Loc.Localize("InstallerProfilesCouldNotRemove", "Couldn't remove plugin from this collection.");
-
-        public static string Profiles_None => Loc.Localize("InstallerProfilesNone", "No collections! Go add some in \"Plugin Collections\"!");
-
-        public static string Profiles_RemoveFromAll =>
-            Loc.Localize("InstallerProfilesRemoveFromAll", "Remove from all collections");
-
+        public static string Profiles_CouldNotAdd => "无法将插件添加到此合集";
+        public static string Profiles_CouldNotRemove => "无法从此合集中移除插件";
+        public static string Profiles_None => "没有合集, 请在\"插件合集\"中添加";
+        public static string Profiles_RemoveFromAll => "从所有合集中移除";
         #endregion
     }
 }
