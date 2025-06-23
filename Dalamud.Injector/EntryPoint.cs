@@ -12,7 +12,7 @@ using System.Text.RegularExpressions;
 using Dalamud.Common;
 using Dalamud.Common.Game;
 using Dalamud.Common.Util;
-
+using FfxivArgLauncher;
 using Newtonsoft.Json;
 using Reloaded.Memory.Buffers;
 using Serilog;
