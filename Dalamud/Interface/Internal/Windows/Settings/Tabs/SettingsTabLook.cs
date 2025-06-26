@@ -48,8 +48,8 @@ public class SettingsTabLook : SettingsTab
             () => Service<DalamudInterface>.Get().OpenStyleEditor()),
 
         new ButtonSettingsEntry(
-            Loc.Localize("DalamudSettingsOpenNotificationEditor", "Modify Notification Position"),
-            Loc.Localize("DalamudSettingsNotificationEditorHint", "Choose where Dalamud notifications appear on the screen."),
+            "修改 Dalamud 通知",
+            "调整 Dalamud 通知窗口出现的位置",
             () => Service<NotificationManager>.Get().StartPositionChooser()),
 
         new SettingsEntry<bool>(
