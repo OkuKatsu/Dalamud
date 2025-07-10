@@ -2743,9 +2743,6 @@ internal class PluginInstallerWindow : Window, IDisposable
             availablePluginUpdate = null;
 
         // Update available
-        var isMainRepoCrossUpdate = availablePluginUpdate != null &&
-                                    availablePluginUpdate.UpdateManifest.RepoUrl != plugin.Manifest.RepoUrl &&
-                                    availablePluginUpdate.UpdateManifest.RepoUrl == PluginRepository.MainRepoUrl;
         if (availablePluginUpdate != null)
         {
             label += Locs.PluginTitleMod_HasUpdate;
@@ -2781,13 +2778,6 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (plugin.IsBanned)
         {
             label += Locs.PluginTitleMod_BannedError;
-            trouble = true;
-        }
-
-        // Orphaned, if we don't have a cross-repo update
-        if (plugin.IsOrphaned && !isMainRepoCrossUpdate)
-        {
-            label += Locs.PluginTitleMod_OrphanedError;
             trouble = true;
         }
 
@@ -2834,8 +2824,6 @@ internal class PluginInstallerWindow : Window, IDisposable
             flags |= PluginHeaderFlags.HasTrouble;
         if (availablePluginUpdate != null)
             flags |= PluginHeaderFlags.UpdateAvailable;
-        if (isMainRepoCrossUpdate)
-            flags |= PluginHeaderFlags.MainRepoCrossUpdate;
         if (plugin.IsOrphaned)
             flags |= PluginHeaderFlags.IsOrphan;
         if (plugin.IsTesting)

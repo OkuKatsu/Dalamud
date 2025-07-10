@@ -130,7 +130,7 @@ internal class PluginManager : IInternalDisposableService
                     }));
 
         this.configuration.PluginTestingOptIns ??= new();
-        this.MainRepos = PluginRepository.CreateMainRepo(this.happyHttpClient);
+        this.MainRepo = PluginRepository.CreateMainRepo(this.happyHttpClient);
 
         registerStartupBlocker(
             Task.Run(this.LoadAndStartLoadSyncPlugins),
@@ -223,7 +223,7 @@ internal class PluginManager : IInternalDisposableService
     /// <summary>
     /// Gets the main repository.
     /// </summary>
-    public List<PluginRepository> MainRepos { get; set; }
+    public PluginRepository MainRepo { get; set; }
 
     /// <summary>
     /// Gets a list of all plugin repositories. The main repo should always be first.
@@ -439,7 +439,7 @@ internal class PluginManager : IInternalDisposableService
     public async Task SetPluginReposFromConfigAsync(bool notify)
     {
         var repos = new List<PluginRepository>();
-        repos.AddRange(this.MainRepos);
+        repos.AddRange(this.MainRepo);
         repos.AddRange(this.configuration.ThirdRepoList
                            .Where(repo => repo.IsEnabled)
                            .Select(repo => new PluginRepository(this.happyHttpClient, repo.Url, repo.IsEnabled)));
@@ -728,9 +728,11 @@ internal class PluginManager : IInternalDisposableService
     {
         Log.Information("Now reloading all PluginMasters...");
 
-        this.MainRepos = PluginRepository.CreateMainRepo(this.happyHttpClient);
-        for (var i = 0; i < MainRepos.Count; i++)
-            Repos[i] = MainRepos[i];
+        this.MainRepo = PluginRepository.CreateMainRepo(this.happyHttpClient);
+        Repos[0] = this.MainRepo;
+
+        if (Repos.All(x => x.PluginMasterUrl != PluginRepository.MainRepoDRUrl))
+            Repos.Add(new(this.happyHttpClient, PluginRepository.MainRepoDRUrl, true));
         
         this.ReposReady = false;
 
@@ -1494,9 +1496,7 @@ internal class PluginManager : IInternalDisposableService
             }
 
             // Document the url the plugin was installed from
-            tempManifest.InstalledFromUrl = repoManifest.SourceRepo.IsThirdParty
-                                                ? repoManifest.SourceRepo.PluginMasterUrl
-                                                : SpecialPluginSource.MainRepo;
+            tempManifest.InstalledFromUrl = repoManifest.SourceRepo.PluginMasterUrl;
 
             tempManifest.Save(tempManifestFile, "installation");
 

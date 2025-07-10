@@ -190,9 +190,7 @@ internal class LocalPlugin : IAsyncDisposable
     /// <summary>
     /// 获取一个值，表示此插件是否已退役（仓库仍然存在，但插件不再存在）。
     /// </summary>
-    public bool IsDecommissioned => !this.IsDev &&
-                                    this.GetSourceRepository()?.State == PluginRepositoryState.Success &&
-                                    this.GetSourceRepository()?.PluginMaster?.FirstOrDefault(x => x.InternalName == this.manifest.InternalName) == null;
+    public bool IsDecommissioned => false;
 
     /// <summary>
     /// 获取一个值，表示此插件是否已被禁止。
@@ -212,8 +210,7 @@ internal class LocalPlugin : IAsyncDisposable
     /// <summary>
     /// 获取一个值，表示此插件是否应该被允许加载。
     /// </summary>
-    public bool ApplicableForLoad => !this.IsBanned && !this.IsDecommissioned && !this.IsOrphaned && !this.IsOutdated
-                                     && !(!this.IsDev && this.State == PluginState.UnloadError) && this.CheckPolicy();
+    public bool ApplicableForLoad => !this.IsOutdated && !(!this.IsDev && this.State == PluginState.UnloadError) && this.CheckPolicy();
 
     /// <summary>
     /// 获取此插件的有效版本。

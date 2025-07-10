@@ -71,7 +71,6 @@ internal class PluginRepository
 
         this.httpClient.DefaultRequestHeaders.Add("X-Machine-Token", DeviceUtils.GetDeviceId());
         PluginMasterUrl = pluginMasterUrl;
-        IsThirdParty    = false;
         IsEnabled       = isEnabled;
     }
 
@@ -83,7 +82,7 @@ internal class PluginRepository
     /// <summary>
     ///     是否为第三方仓库
     /// </summary>
-    public bool IsThirdParty { get; }
+    public bool IsThirdParty => true;
 
     /// <summary>
     ///     仓库是否启用
@@ -105,7 +104,7 @@ internal class PluginRepository
     /// </summary>
     /// <param name="happyHttpClient">HTTP客户端实例</param>
     /// <returns>主仓库实例</returns>
-    public static List<PluginRepository> CreateMainRepo(HappyHttpClient happyHttpClient)
+    public static PluginRepository CreateMainRepo(HappyHttpClient happyHttpClient)
     {
         // 摊手.jpg
         var dalamudConfig = Service<DalamudConfiguration>.Get();
@@ -115,11 +114,7 @@ internal class PluginRepository
             dalamudConfig.QueueSave();
         }
 
-        return
-        [
-            new(happyHttpClient, MainRepoUrl, true),
-            new(happyHttpClient, MainRepoDRUrl, true)
-        ];
+        return new(happyHttpClient, MainRepoUrl, true);
     }
 
     /// <summary>
