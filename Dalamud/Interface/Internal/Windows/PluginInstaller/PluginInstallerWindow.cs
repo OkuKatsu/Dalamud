@@ -4192,7 +4192,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string PluginBody_CurrentChangeLog(Version version) => $"更新日志 (v{version})";
         public static string PluginBody_UpdateChangeLog(Version version) => $"可用更新日志 (v{version})";
         public static string PluginBody_DevPluginPath(string path) => $"来源：{path}";
-        public static string PluginBody_Plugin3rdPartyRepo(string url) => $"来源：自定义插件仓库 {url}";
+        public static string PluginBody_Plugin3rdPartyRepo(string url) => $"来源：{url}";
         public static string PluginBody_Outdated => "此插件已过时且不兼容。";
         public static string PluginBody_Incompatible => "此插件与当前 Dalamud 版本不兼容。请尝试重启游戏。";
         public static string PluginBody_Outdated_WaitForUpdate => "请等待作者更新。";

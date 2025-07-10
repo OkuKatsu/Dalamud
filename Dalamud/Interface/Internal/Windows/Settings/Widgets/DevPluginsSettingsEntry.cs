@@ -72,8 +72,8 @@ public class DevPluginsSettingsEntry : SettingsEntry
 
         ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsDevPluginLocationsHint", "Add dev plugin load locations.\nThis must be a path to the plugin DLL."));
 
-        var locationSelect = Loc.Localize("DalamudDevPluginLocationSelect", "Select Dev Plugin DLL");
-        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Folder, locationSelect))
+        const string locationSelect = "选择开发版插件 DLL";
+        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Folder, "选择开发版插件 DLL"))
         {
             this.fileDialogManager.OpenFileDialog(
                 locationSelect,

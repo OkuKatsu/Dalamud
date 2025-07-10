@@ -130,7 +130,7 @@ internal class PluginManager : IInternalDisposableService
                     }));
 
         this.configuration.PluginTestingOptIns ??= new();
-        this.MainRepo = PluginRepository.CreateMainRepo(this.happyHttpClient);
+        this.MainRepos = PluginRepository.CreateMainRepo(this.happyHttpClient);
 
         registerStartupBlocker(
             Task.Run(this.LoadAndStartLoadSyncPlugins),
@@ -223,12 +223,12 @@ internal class PluginManager : IInternalDisposableService
     /// <summary>
     /// Gets the main repository.
     /// </summary>
-    public PluginRepository MainRepo { get; set; }
+    public List<PluginRepository> MainRepos { get; set; }
 
     /// <summary>
     /// Gets a list of all plugin repositories. The main repo should always be first.
     /// </summary>
-    public List<PluginRepository> Repos { get; private set; } = new();
+    public List<PluginRepository> Repos { get; private set; } = [];
 
     /// <summary>
     /// Gets a value indicating whether plugins are not still loading from boot.
@@ -438,7 +438,8 @@ internal class PluginManager : IInternalDisposableService
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task SetPluginReposFromConfigAsync(bool notify)
     {
-        var repos = new List<PluginRepository> { this.MainRepo };
+        var repos = new List<PluginRepository>();
+        repos.AddRange(this.MainRepos);
         repos.AddRange(this.configuration.ThirdRepoList
                            .Where(repo => repo.IsEnabled)
                            .Select(repo => new PluginRepository(this.happyHttpClient, repo.Url, repo.IsEnabled)));
@@ -727,8 +728,9 @@ internal class PluginManager : IInternalDisposableService
     {
         Log.Information("Now reloading all PluginMasters...");
 
-        this.MainRepo = PluginRepository.CreateMainRepo(this.happyHttpClient);
-        Repos[0] = this.MainRepo;
+        this.MainRepos = PluginRepository.CreateMainRepo(this.happyHttpClient);
+        for (var i = 0; i < MainRepos.Count; i++)
+            Repos[i] = MainRepos[i];
         
         this.ReposReady = false;
 
