@@ -172,15 +172,15 @@ internal class PluginRepository
 
         if (manifest.Name.IsNullOrWhitespace())
         {
-            Log.Error("仓库 {RepoLink} 中的插件 {PluginName} 缺少有效的名称", manifest.InternalName, PluginMasterUrl);
+            Log.Error("仓库 {RepoLink} 中的插件 {PluginName} 缺少有效的名称", PluginMasterUrl, manifest.InternalName);
             return false;
         }
 
         // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         if (manifest.AssemblyVersion == null)
         {
-            Log.Error("仓库 {RepoLink} 中的插件 {PluginName} 缺少有效的程序集版本", manifest.InternalName,
-                      PluginMasterUrl);
+            Log.Error("仓库 {RepoLink} 中的插件 {PluginName} 缺少有效的程序集版本", PluginMasterUrl,
+                      manifest.InternalName);
             return false;
         }
 
@@ -189,7 +189,7 @@ internal class PluginRepository
             manifest.TestingDalamudApiLevel == null)
             Log.Warning(
                 "仓库 {RepoLink} 中的插件 {PluginName} 有测试版本可用，但未指定测试API版本，需要提供 'TestingDalamudApiLevel' 属性",
-                manifest.InternalName, PluginMasterUrl);
+                PluginMasterUrl, manifest.InternalName);
 
         return true;
     }
