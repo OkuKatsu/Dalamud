@@ -50,7 +50,7 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
                 {
                     LoadMultithreaded = true,
                     CacheFileResources = true,
-                    PanicOnSheetChecksumMismatch = true,
+                    PanicOnSheetChecksumMismatch = false,
                     RsvResolver = this.rsvResolver.TryResolve,
                     DefaultExcelLanguage = this.Language.ToLumina(),
                 };
