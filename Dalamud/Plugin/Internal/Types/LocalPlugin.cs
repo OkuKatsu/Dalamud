@@ -394,6 +394,9 @@ internal class LocalPlugin : IAsyncDisposable
                                     this.dalamudInterface);
                 this.State = PluginState.Loaded;
                 Log.Information("完成加载 {PluginName}", this.InternalName);
+
+                var manager = Service<PluginManager>.Get();
+                manager.NotifyPluginsForStateChange(PluginListInvalidationKind.Loaded, [this.manifest.InternalName]);
             }
             catch (Exception ex)
             {
@@ -468,6 +471,9 @@ internal class LocalPlugin : IAsyncDisposable
 
             this.State = PluginState.Unloaded;
             Log.Information("完成卸载 {PluginName}", this.InternalName);
+
+            var manager = Service<PluginManager>.Get();
+            manager.NotifyPluginsForStateChange(PluginListInvalidationKind.Unloaded, [this.manifest.InternalName]);
         }
         catch (Exception ex)
         {

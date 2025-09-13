@@ -42,6 +42,9 @@ internal static class BugBait
         [JsonProperty("version")]
         public string? Version { get; set; }
 
+        [JsonProperty("platform")]
+        public string? Platform { get; set; }
+
         [JsonProperty("reporter")]
         public string? Reporter { get; set; }
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 
 using CheapLoc;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
@@ -13,8 +14,6 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Plugin.Internal.Types;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
 
@@ -34,20 +33,20 @@ public class SettingsTabAutoUpdates : SettingsTab
 
     public override void Draw()
     {
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateHint",
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateHint",
                                                 "Dalamud 可以自动更新你的插件，确保你始终" +
                                                 "能获得最新功能和错误修复。可以在此设置自动更新的时机和方式。"));
         ImGuiHelpers.ScaledDummy(2);
 
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdateDisclaimer1",
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdateDisclaimer1",
                                                 "你始终可以通过插件列表中的更新按钮手动更新插件。" +
                                                 "也可右键单击插件并选择\"始终自动更新\"来为特定插件启用自动更新。"));
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdateDisclaimer2",
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdateDisclaimer2",
                                                 "Dalamud 只会在你处于空闲状态时通知更新。"));
 
         ImGuiHelpers.ScaledDummy(8);
 
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateBehavior",
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateBehavior",
                                                 "当游戏启动时..."));
         var behaviorInt = (int)this.behavior;
         ImGui.RadioButton(Loc.Localize("DalamudSettingsAutoUpdateNone", "不自动检查更新"), ref behaviorInt, (int)AutoUpdateBehavior.None);
@@ -62,7 +61,7 @@ public class SettingsTabAutoUpdates : SettingsTab
                 "DalamudSettingsAutoUpdateAllWarning",
                 "警告：这将更新所有插件，包括非主库来源的插件。\n" +
                 "这些更新未经 Dalamud 团队审核，可能包含恶意代码。");
-            ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudOrange, warning);
+            ImGui.TextColoredWrapped(ImGuiColors.DalamudOrange, warning);
         }
 
         ImGuiHelpers.ScaledDummy(8);
@@ -70,17 +69,17 @@ public class SettingsTabAutoUpdates : SettingsTab
         ImGui.Checkbox(Loc.Localize("DalamudSettingsAutoUpdateDisabledPlugins", "自动更新当时被禁用的插件"), ref this.updateDisabledPlugins);
         ImGui.Checkbox(Loc.Localize("DalamudSettingsAutoUpdateChatMessage", "在聊天栏显示可用更新通知"), ref this.chatNotification);
         ImGui.Checkbox(Loc.Localize("DalamudSettingsAutoUpdatePeriodically", "游戏运行时定期检查更新"), ref this.checkPeriodically);
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdatePeriodicallyHint",
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdatePeriodicallyHint",
                                                 "启动后不会自动更新插件，仅在你未活跃游戏时接收通知。"));
 
         ImGuiHelpers.ScaledDummy(5);
         ImGui.Separator();
         ImGuiHelpers.ScaledDummy(5);
 
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateOptedIn",
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateOptedIn",
                                                 "插件单独设置"));
 
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateOverrideHint",
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateOverrideHint",
                                                 "在此可为特定插件单独设置是否接收更新，" +
                                                 "这将覆盖上述全局设置。"));
 
@@ -119,14 +118,14 @@ public class SettingsTabAutoUpdates : SettingsTab
                     pic.TryGetIcon(pmPlugin, pmPlugin.Manifest, pmPlugin.IsThirdParty, out var icon, out _);
                     icon ??= pic.DefaultIcon;
 
-                    ImGui.Image(icon.ImGuiHandle, new Vector2(pluginLineHeight));
+                    ImGui.Image(icon.Handle, new Vector2(pluginLineHeight));
 
                     if (pmPlugin.IsDev)
                     {
                         ImGui.SetCursorPos(cursorBeforeIcon);
                         using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, 0.7f))
                         {
-                            ImGui.Image(pic.DevPluginIcon.ImGuiHandle, new Vector2(pluginLineHeight));
+                            ImGui.Image(pic.DevPluginIcon.Handle, new Vector2(pluginLineHeight));
                         }
                     }
 
@@ -137,13 +136,13 @@ public class SettingsTabAutoUpdates : SettingsTab
                     var before = ImGui.GetCursorPos();
 
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (textHeight.Y / 2));
-                    ImGui.TextUnformatted(text);
+                    ImGui.Text(text);
 
                     ImGui.SetCursorPos(before);
                 }
                 else
                 {
-                    ImGui.Image(pic.DefaultIcon.ImGuiHandle, new Vector2(pluginLineHeight));
+                    ImGui.Image(pic.DefaultIcon.Handle, new Vector2(pluginLineHeight));
                     ImGui.SameLine();
 
                     var text = Loc.Localize("DalamudSettingsAutoUpdateOptInUnknownPlugin", "未知插件");
@@ -151,7 +150,7 @@ public class SettingsTabAutoUpdates : SettingsTab
                     var before = ImGui.GetCursorPos();
 
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (textHeight.Y / 2));
-                    ImGui.TextUnformatted(text);
+                    ImGui.Text(text);
 
                     ImGui.SetCursorPos(before);
                 }

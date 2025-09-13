@@ -121,8 +121,6 @@ internal class PluginManager : IInternalDisposableService
         this.openInstallerWindowPluginChangelogsLink =
             Service<ChatGui>.GetAsync().ContinueWith(
                 chatGuiTask => chatGuiTask.Result.AddChatLinkHandler(
-                    "Dalamud",
-                    1003,
                     (_, _) =>
                     {
                         Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(
@@ -1217,7 +1215,7 @@ internal class PluginManager : IInternalDisposableService
         }
 
         return this.bannedPlugins.Any(ban => (ban.Name == manifest.InternalName || ban.Name == Hash.GetStringSha256Hash(manifest.InternalName))
-                                                                        && ban.AssemblyVersion >= versionToCheck);
+                                                                        && (ban.AssemblyVersion == null || ban.AssemblyVersion >= versionToCheck));
     }
 
     /// <summary>
@@ -1268,6 +1266,23 @@ internal class PluginManager : IInternalDisposableService
     /// </summary>
     /// <returns>The calling plugin, or null.</returns>
     public LocalPlugin? FindCallingPlugin() => this.FindCallingPlugin(new StackTrace());
+
+    /// <summary>
+    /// Notifies all plugins that the active plugins list changed.
+    /// </summary>
+    /// <param name="kind">The invalidation kind.</param>
+    /// <param name="affectedInternalNames">The affected plugins.</param>
+    public void NotifyPluginsForStateChange(PluginListInvalidationKind kind, IEnumerable<string> affectedInternalNames)
+    {
+        foreach (var installedPlugin in this.installedPluginsList)
+        {
+            if (!installedPlugin.IsLoaded || installedPlugin.DalamudInterface == null)
+                continue;
+
+            installedPlugin.DalamudInterface.NotifyActivePluginsChanged(
+                new ActivePluginsChangedEventArgs(kind, affectedInternalNames));
+        }
+    }
 
     /// <summary>
     /// Resolves the services that a plugin may have a dependency on.<br />
@@ -1794,20 +1809,6 @@ internal class PluginManager : IInternalDisposableService
         this.DetectAvailablePluginUpdates();
 
         this.OnInstalledPluginsChanged?.InvokeSafely();
-    }
-
-    private void NotifyPluginsForStateChange(PluginListInvalidationKind kind, IEnumerable<string> affectedInternalNames)
-    {
-        foreach (var installedPlugin in this.installedPluginsList)
-        {
-            if (!installedPlugin.IsLoaded || installedPlugin.DalamudInterface == null)
-                continue;
-
-            installedPlugin.DalamudInterface.NotifyActivePluginsChanged(
-                kind,
-                // ReSharper disable once PossibleMultipleEnumeration
-                affectedInternalNames.Contains(installedPlugin.Manifest.InternalName));
-        }
     }
 
     private void LoadAndStartLoadSyncPlugins()

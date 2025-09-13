@@ -2,7 +2,7 @@ using System.Linq;
 using System.Numerics;
 
 using CheapLoc;
-
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.Windows.Settings.Tabs;
@@ -11,8 +11,6 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Settings;
 
@@ -42,7 +40,7 @@ internal class SettingsWindow : Window
         };
 
         this.SizeCondition = ImGuiCond.FirstUseEver;
-        
+
         this.tabs =
         [
             new SettingsTabGeneral(),
@@ -101,19 +99,30 @@ internal class SettingsWindow : Window
         var interfaceManager = Service<InterfaceManager>.Get();
         var fontAtlasFactory = Service<FontAtlasFactory>.Get();
 
+        var scaleChanged = !Equals(ImGui.GetIO().FontGlobalScale, configuration.GlobalUiScale);
         var rebuildFont = !Equals(fontAtlasFactory.DefaultFontSpec, configuration.DefaultFontSpec);
-        rebuildFont |= !Equals(ImGui.GetIO().FontGlobalScale, configuration.GlobalUiScale);
+        rebuildFont |= scaleChanged;
 
         ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
+        if (scaleChanged)
+        {
+            Service<InterfaceManager>.Get().InvokeGlobalScaleChanged();
+        }
+
         fontAtlasFactory.DefaultFontSpecOverride = null;
 
         if (rebuildFont)
+        {
             interfaceManager.RebuildFonts();
+            Service<InterfaceManager>.Get().InvokeFontChanged();
+        }
 
         foreach (var settingsTab in this.tabs)
         {
             if (settingsTab.IsOpen)
+            {
                 settingsTab.OnClose();
+            }
 
             settingsTab.IsOpen = false;
         }
@@ -130,7 +139,7 @@ internal class SettingsWindow : Window
     {
         var windowSize = ImGui.GetWindowSize();
 
-        if (ImGui.BeginTabBar("###settingsTabs"))
+        if (ImGui.BeginTabBar("###settingsTabs"u8))
         {
             if (string.IsNullOrEmpty(this.searchInput))
             {
@@ -142,7 +151,7 @@ internal class SettingsWindow : Window
                         flags |= ImGuiTabItemFlags.SetSelected;
                         this.setActiveTab = null;
                     }
- 
+
                     using var tab = ImRaii.TabItem(settingsTab.Title, flags);
                     if (tab)
                     {
@@ -219,7 +228,7 @@ internal class SettingsWindow : Window
 
         ImGui.SetCursorPos(windowSize - ImGuiHelpers.ScaledVector2(70));
 
-        using (var buttonChild = ImRaii.Child("###settingsFinishButton"))
+        using (var buttonChild = ImRaii.Child("###settingsFinishButton"u8))
         {
             if (buttonChild)
             {

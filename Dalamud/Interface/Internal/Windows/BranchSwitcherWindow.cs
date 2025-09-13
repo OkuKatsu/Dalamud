@@ -1,6 +1,5 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
-
-using ImGuiNET;
 using Newtonsoft.Json;
 
 namespace Dalamud.Interface.Internal.Windows;
