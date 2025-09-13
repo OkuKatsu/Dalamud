@@ -1,13 +1,13 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
 using CheapLoc;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Internal.Windows.Settings.Widgets;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
 

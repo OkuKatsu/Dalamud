@@ -3,14 +3,15 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Numerics;
 using System.Net;
 using System.Net.Http;
+using System.Numerics;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,19 +21,16 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Support;
 using Lumina.Excel.Sheets;
 using Serilog;
-using Newtonsoft.Json;
-
 using TerraFX.Interop.Windows;
 using Windows.Win32.System.Memory;
 using Windows.Win32.System.Ole;
 using Windows.Win32.UI.WindowsAndMessaging;
-
-using Dalamud.Interface.Internal;
 
 using FLASHWINFO = Windows.Win32.UI.WindowsAndMessaging.FLASHWINFO;
 using HWND = Windows.Win32.Foundation.HWND;
@@ -574,49 +572,36 @@ public static partial class Util
         }
 
     }
+
     /// Open a link in the default browser, and attempts to focus the newly launched application.
     /// </summary>
     /// <param name="url">The link to open.</param>
-    public static void OpenLink(string url) => new Thread(
-        static url =>
+    public static void OpenLink(string url) => new Thread(static url =>
+    {
+        try
         {
-            try
-            {
-                var psi = new ProcessStartInfo((string)url!)
-                {
-                    UseShellExecute = true,
-                    ErrorDialogParentHandle = Service<InterfaceManager>.GetNullable() is { } im
-                                                  ? im.GameWindowHandle
-                                                  : 0,
-                    Verb = "open",
-                };
-                if (Process.Start(psi) is not { } process)
-                    return;
-
-                if (process.Id != 0)
-                    TerraFX.Interop.Windows.Windows.AllowSetForegroundWindow((uint)process.Id);
-                process.WaitForInputIdle();
-                TerraFX.Interop.Windows.Windows.SetForegroundWindow(
-                    (TerraFX.Interop.Windows.HWND)process.MainWindowHandle);
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, "{fn}: failed to open {url}", nameof(OpenLink), url);
-            }
-        }).Start(url);
-
-        /// <summary>
-        /// Open a link in the default browser.
-        /// </summary>
-        /// <param name="url">The link to open.</param>
-    public static void OpenLink(string url)
-        {
-            var process = new ProcessStartInfo(url)
+            var psi = new ProcessStartInfo((string)url!)
             {
                 UseShellExecute = true,
+                ErrorDialogParentHandle = Service<InterfaceManager>.GetNullable() is { } im
+                                              ? im.GameWindowHandle
+                                              : 0,
+                Verb = "open",
             };
-            Process.Start(process);
+            if (Process.Start(psi) is not { } process)
+                return;
+
+            if (process.Id != 0)
+                TerraFX.Interop.Windows.Windows.AllowSetForegroundWindow((uint)process.Id);
+            process.WaitForInputIdle();
+            TerraFX.Interop.Windows.Windows.SetForegroundWindow(
+                (TerraFX.Interop.Windows.HWND)process.MainWindowHandle);
         }
+        catch (Exception e)
+        {
+            Log.Error(e, "{fn}: failed to open {url}", nameof(OpenLink), url);
+        }
+    }).Start(url);
 
     /// <summary>
     /// Perform a "zipper merge" (A, 1, B, 2, C, 3) of multiple enumerables, allowing for lists to end early.

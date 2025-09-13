@@ -1,13 +1,12 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Net.Http;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 
@@ -49,13 +48,13 @@ public class ProxySettingsEntry : SettingsEntry
     {
         ImGui.Text("代理设置");
         
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudRed, "设置 Dalamud 所使用的网络代理, 会影响到插件库的连接, 保存后重启游戏生效");
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudRed, "设置 Dalamud 所使用的网络代理, 会影响到插件库的连接, 保存后重启游戏生效");
         
         ImGui.Checkbox("手动配置代理", ref this.useManualProxy);
         
         if (this.useManualProxy)
         {
-            ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, "若不清楚下方选项的具体作用, 请勿修改");
+            ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, "若不清楚下方选项的具体作用, 请勿修改");
             
             ImGui.Text("协议");
             
