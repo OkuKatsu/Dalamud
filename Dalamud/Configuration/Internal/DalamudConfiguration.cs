@@ -66,7 +66,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// </summary>
     public event DalamudConfigurationSavedDelegate? DalamudConfigurationSaved;
 
-    public string MainRepoUrl { get; set; } = PluginRepository.MainRepoUrlDailyRoutines;
+    public string MainRepoUrl { get; set; } = PluginRepository.MainRepoUrlGoatCorp;
     
     /// <summary>
     /// Gets or sets a list of muted words.
