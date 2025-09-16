@@ -24,6 +24,8 @@ internal class PluginRepository
     ///     官方主仓库地址
     /// </summary>
     public const string MainRepoUrlGoatCorp = "https://kamori.goats.dev/Plugin/PluginMaster";
+    
+    public const string MainRepoUrlDailyRoutines = "https://raw.githubusercontent.com/Dalamud-DailyRoutines/PluginDistD17/refs/heads/main/pluginmaster.json";
 
     public static string MainRepoUrl => Service<DalamudConfiguration>.Get().MainRepoUrl;
 
@@ -114,7 +116,7 @@ internal class PluginRepository
         var dalamudConfig = Service<DalamudConfiguration>.Get();
         if (InvalidRepos.Any(x => dalamudConfig.MainRepoUrl.Contains(x, StringComparison.OrdinalIgnoreCase)))
         {
-            dalamudConfig.MainRepoUrl = MainRepoUrlGoatCorp;
+            dalamudConfig.MainRepoUrl = MainRepoUrlDailyRoutines;
             dalamudConfig.QueueSave();
         }
 
