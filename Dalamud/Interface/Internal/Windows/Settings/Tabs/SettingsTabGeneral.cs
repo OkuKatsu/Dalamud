@@ -92,15 +92,7 @@ public class SettingsTabGeneral : SettingsTab
         var mainRepoUrl = config.MainRepoUrl;
         
         ImGui.Text("默认主库");
-        if (ImGui.RadioButton("国服 (DailyRoutines)", mainRepoUrl == PluginRepository.MainRepoUrlDailyRoutines))
-        {
-            config.MainRepoUrl = PluginRepository.MainRepoUrlDailyRoutines;
-            config.QueueSave();
-            
-            _ = Service<PluginManager>.Get().ReloadPluginMastersAsync();
-        }
         
-        ImGui.SameLine();
         if (ImGui.RadioButton("国际服 (goatcorp)", mainRepoUrl == PluginRepository.MainRepoUrlGoatCorp))
         {
             config.MainRepoUrl = PluginRepository.MainRepoUrlGoatCorp;
@@ -119,7 +111,7 @@ public class SettingsTabGeneral : SettingsTab
         if (ImGui.IsItemDeactivatedAfterEdit())
         {
             if (string.IsNullOrWhiteSpace(mainRepoUrl))
-                mainRepoUrl = PluginRepository.MainRepoUrlDailyRoutines;
+                mainRepoUrl = PluginRepository.MainRepoUrlGoatCorp;
             
             config.MainRepoUrl = mainRepoUrl;
             config.QueueSave();

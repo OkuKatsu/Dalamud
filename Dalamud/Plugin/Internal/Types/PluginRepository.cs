@@ -23,14 +23,18 @@ internal class PluginRepository
     /// <summary>
     ///     官方主仓库地址
     /// </summary>
-    
-    public const string MainRepoUrlDailyRoutines = "https://gh.atmoomen.top/https://raw.githubusercontent.com/Dalamud-DailyRoutines/PluginDistD17/main/pluginmaster.json";
     public const string MainRepoUrlGoatCorp = "https://kamori.goats.dev/Plugin/PluginMaster";
 
     public static string MainRepoUrl => Service<DalamudConfiguration>.Get().MainRepoUrl;
 
     public const string MainRepoDRUrl = "https://raw.githubusercontent.com/AtmoOmen/DalamudPlugins/main/pluginmaster.json";
 
+    private static readonly List<string> InvalidRepos =
+    [
+        "https://aonyx.ffxiv.wang/Plugin/PluginMaster",
+        "https://gh.atmoomen.top/https://raw.githubusercontent.com/Dalamud-DailyRoutines/PluginDistD17/main/pluginmaster.json"
+    ];
+    
     private const int HttpRequestTimeoutSeconds = 20;
 
     private static readonly ModuleLog Log = new("PLUGINR");
@@ -108,9 +112,9 @@ internal class PluginRepository
     {
         // 摊手.jpg
         var dalamudConfig = Service<DalamudConfiguration>.Get();
-        if (dalamudConfig.MainRepoUrl.Contains("https://aonyx.ffxiv.wang/Plugin/PluginMaster", StringComparison.OrdinalIgnoreCase))
+        if (InvalidRepos.Any(x => dalamudConfig.MainRepoUrl.Contains(x, StringComparison.OrdinalIgnoreCase)))
         {
-            dalamudConfig.MainRepoUrl = MainRepoUrlDailyRoutines;
+            dalamudConfig.MainRepoUrl = MainRepoUrlGoatCorp;
             dalamudConfig.QueueSave();
         }
 
