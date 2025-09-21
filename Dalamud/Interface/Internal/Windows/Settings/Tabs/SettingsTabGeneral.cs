@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
 using CheapLoc;
 using Dalamud.Bindings.ImGui;
@@ -90,7 +90,8 @@ public class SettingsTabGeneral : SettingsTab
     {
         var config      = Service<DalamudConfiguration>.Get();
         var mainRepoUrl = config.MainRepoUrl;
-        
+        var useSoilPluginManager = config.UseSoilPluginManager;
+
         ImGui.Text("默认主库");
         
         if (ImGui.RadioButton("国服 (Daily Routines)", mainRepoUrl == PluginRepository.MainRepoUrlDailyRoutines))
@@ -130,7 +131,27 @@ public class SettingsTabGeneral : SettingsTab
         ImGui.TextDisabled("选择 Dalamud 默认将会加载的主库, 你也可以选择自定义主库 (请注意 API 版本)");
         
         ImGuiHelpers.ScaledDummy(20);
-        
+
+        ImGui.Text("插件库排序方式");
+
+        if (ImGui.RadioButton("使用库分类", useSoilPluginManager == true))
+        {
+            config.UseSoilPluginManager = true;
+            config.QueueSave();
+
+            _ = Service<PluginManager>.Get().ReloadPluginMastersAsync();
+        }
+
+        if (ImGui.RadioButton("使用默认分类", useSoilPluginManager == false))
+        {
+            config.UseSoilPluginManager = false;
+            config.QueueSave();
+
+            _ = Service<PluginManager>.Get().ReloadPluginMastersAsync();
+        }
+
+        ImGuiHelpers.ScaledDummy(20);
+
         base.Draw();
     }
 }

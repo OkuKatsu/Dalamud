@@ -1366,7 +1366,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGuiHelpers.ScaledDummy(paddingAfter);
     }
 
-    private void DrawAvailablePluginList()
+    private void DrawAvailablePluginListSoil()
     {
         var proxies = this.GatherProxies().ToList();
         if (proxies.Count == 0)
@@ -1432,6 +1432,56 @@ internal class PluginInstallerWindow : Window, IDisposable
                         ? "此仓库未找到可用插件" 
                         : $"未找到匹配 \"{this.searchText}\" 的插件");
             }
+        }
+
+        // Reset the category to "All" if we're on the "Hidden" category and there are no hidden plugins (we removed the last one)
+        if (i == 0 && this.categoryManager.CurrentCategoryKind == PluginCategoryManager.CategoryKind.Hidden)
+        {
+            this.categoryManager.CurrentCategoryKind = PluginCategoryManager.CategoryKind.All;
+        }
+
+        using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey))
+        {
+            var hasSearch = !this.searchText.IsNullOrEmpty();
+
+            if (i == 0 && !hasSearch)
+            {
+                DrawMutedBodyText(Locs.TabBody_NoPluginsAvailable, 60, 20);
+            }
+            else if (i == 0 && hasSearch)
+            {
+                DrawMutedBodyText(Locs.TabBody_SearchNoMatching, 60, 20);
+            }
+            else if (hasSearch)
+            {
+                DrawMutedBodyText(Locs.TabBody_NoMoreResultsFor(this.searchText), 20, 20);
+            }
+        }
+    }
+
+    private void DrawAvailablePluginList()
+    {
+        var i = 0;
+        foreach (var proxy in this.GatherProxies())
+        {
+            IPluginManifest applicableManifest = proxy.LocalPlugin != null ? proxy.LocalPlugin.Manifest : proxy.RemoteManifest;
+
+            if (applicableManifest == null)
+                throw new Exception("Could not determine manifest for available plugin");
+
+            ImGui.PushID($"{applicableManifest.InternalName}{applicableManifest.AssemblyVersion}");
+
+            if (proxy.LocalPlugin != null)
+            {
+                var update = this.pluginListUpdatable.FirstOrDefault(up => up.InstalledPlugin == proxy.LocalPlugin);
+                this.DrawInstalledPlugin(proxy.LocalPlugin, i++, proxy.RemoteManifest, update);
+            }
+            else if (proxy.RemoteManifest != null)
+            {
+                this.DrawAvailablePlugin(proxy.RemoteManifest, i++);
+            }
+
+            ImGui.PopID();
         }
 
         // Reset the category to "All" if we're on the "Hidden" category and there are no hidden plugins (we removed the last one)
@@ -1802,7 +1852,10 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                 break;
             default:
-                this.DrawAvailablePluginList();
+                if (Service<DalamudConfiguration>.Get().UseSoilPluginManager)
+                    this.DrawAvailablePluginListSoil();
+                else
+                    this.DrawAvailablePluginList();
                 break;
         }
 
