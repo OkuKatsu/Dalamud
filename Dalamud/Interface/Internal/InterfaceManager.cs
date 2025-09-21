@@ -676,28 +676,30 @@ internal partial class InterfaceManager : IInternalDisposableService
             StyleModel.TransferOldModels();
 
             if (configuration.SavedStyles == null ||
-                configuration.SavedStyles.All(x => x.Name != StyleModelV1.DalamudStandard.Name))
+                configuration.SavedStyles.All(x => x.Name != StyleModelV1.DalamudStandardSoil.Name))
             {
                 configuration.SavedStyles = new List<StyleModel>
-                    { StyleModelV1.DalamudStandard, StyleModelV1.DalamudClassic };
-                configuration.ChosenStyle = StyleModelV1.DalamudStandard.Name;
+                    { StyleModelV1.DalamudStandardSoil, StyleModelV1.DalamudClassicSoil, StyleModelV1.DalamudStandard, StyleModelV1.DalamudClassic };
+                configuration.ChosenStyle = StyleModelV1.DalamudStandardSoil.Name;
             }
             else if (configuration.SavedStyles.Count == 1)
             {
-                configuration.SavedStyles.Add(StyleModelV1.DalamudClassic);
+                configuration.SavedStyles.Add(StyleModelV1.DalamudStandardSoil);
             }
-            else if (configuration.SavedStyles[1].Name != StyleModelV1.DalamudClassic.Name)
+            else if (configuration.SavedStyles[1].Name != StyleModelV1.DalamudStandardSoil.Name)
             {
-                configuration.SavedStyles.Insert(1, StyleModelV1.DalamudClassic);
+                configuration.SavedStyles.Insert(1, StyleModelV1.DalamudStandardSoil);
             }
 
-            configuration.SavedStyles[0] = StyleModelV1.DalamudStandard;
-            configuration.SavedStyles[1] = StyleModelV1.DalamudClassic;
+            configuration.SavedStyles[0] = StyleModelV1.DalamudStandardSoil;
+            configuration.SavedStyles[1] = StyleModelV1.DalamudClassicSoil;
+            configuration.SavedStyles[2] = StyleModelV1.DalamudStandard;
+            configuration.SavedStyles[3] = StyleModelV1.DalamudClassic;
 
             var style = configuration.SavedStyles.FirstOrDefault(x => x.Name == configuration.ChosenStyle);
             if (style == null)
             {
-                style = StyleModelV1.DalamudStandard;
+                style = StyleModelV1.DalamudStandardSoil;
                 configuration.ChosenStyle = style.Name;
                 configuration.QueueSave();
             }
