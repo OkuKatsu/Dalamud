@@ -134,7 +134,7 @@ public class SettingsTabGeneral : SettingsTab
 
         ImGui.Text("插件库排序方式");
 
-        if (ImGui.RadioButton("使用库分类", useSoilPluginManager == true))
+        if (ImGui.RadioButton("使用库分类", useSoilPluginManager))
         {
             config.UseSoilPluginManager = true;
             config.QueueSave();
@@ -142,7 +142,7 @@ public class SettingsTabGeneral : SettingsTab
             _ = Service<PluginManager>.Get().ReloadPluginMastersAsync();
         }
 
-        if (ImGui.RadioButton("使用默认分类", useSoilPluginManager == false))
+        if (ImGui.RadioButton("使用默认分类", !useSoilPluginManager))
         {
             config.UseSoilPluginManager = false;
             config.QueueSave();
