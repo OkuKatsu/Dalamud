@@ -147,12 +147,6 @@ public class StyleModelV1 : StyleModel
     };
 
     /// <summary>
-    /// Gets the standard Dalamud Soil look.
-    /// </summary>
-    public static StyleModel DalamudClassicSoil { get; } = Deserialize(
-        "DS1H4sIAAAAAAAACqWYW3ObOBSA/0qG52yHi0DgtybeNg9tJxNnp5u+ybaCqYnlYuw0zeS/79EVSdg7AechNvicj3OXxGtAgkn0IbwM5sHkNfg3mOT84kF8vl0Gi2CS8RvLYBLyT6qkQiUVfkhB6hEYl0GpZFeKWAUTxD/JXMn/VMqZUoZfQXmtxGol9aSkkJJKhdTGuyt1mXc3Fne3R2V/wc/CrgbsEybslLct3BCP3iudgyBdBs/q+rcy7cV4n1re/+nFJOK3CVH3E3U/kRFl4OhrcE9/t0avQFGEM80s0izPYgyXP8SluEJw+V0EFhhceVrtyLymSwNBUZGFONcUhHOURAlWlBQVIQgkFuV7tVmy56vSEKJQIjLtBhiFcJgpRCQNySzE9aqqlzYhjrjxiQagNCzyUHsSW5q3bLvf2ppG9MF9ltTkAYDfLcAVa5a0MfqdhNCPM/GXK/3E0D392YpADLoECrGk0A6EIvKRooQmT4byqSFP1HZDR0xaASiIiM5BjMM0z+Mj+jfsQBsrl3GcpDE8TXNk9ow3Msqoz/m4aKtD16MynUh701ElRqTbjul91daON647kXAfaTM6ug/wzeCQNC80xuipqIjkxH3MNatrst1ZcRlM+ko3+yvS2D4lmIdThzaShFgjRGRjOyizRQN2zF2ILJNYQ0SCNMMErY/43PBhOLZkHUyvZER/a7cS+YcUDAknI3QK5iVMlon2zkBk+dqQ6xVdrL+SZn3CjFTkq1CAvDfIZnUFTehGZSTgf11w2rjfxVf7tmWbU4lBsm10ejMehCTt6/cyIgWRGcg6fAKD+00sMX7ziEKLdA8m3K0Im7Eu82wX2w0l9mAc3DJS/+yJJDFnDqQZ3ZKGtGzUnO+iY5PO7hsNGtszd3RX/aGfm2o7uOaB5wB8XwYVfYfxPPFCnOqsSHNkyuxhbTXv8El/ZJANbRtg+B7kSVhgbBAxwgk2GyoY73mWFpmL+GfzyBZ7Z7EZvPpZFN8is648OAn/4Q4Yg5qyxbralLcNPVT0eeRwVJC/n7bty1nbvNuatV+qDd2NqzSj7qcauVHJrKiInbpDuKl2LSthn9Opu1bk0hE9GfnOKytOQXqmyAXdsHQLqJEvl3c70zWVE+6crYXAqI1o27BNOX5vYKG+VOWqHb0jFaC70eeC0IN8rNsx8ZGTjp9zZrSmi5bap4z3j8uYd0FDymnDtvekKak2RpSXzLQ4JcXaGbvqvpHDDcSyduI5qPKBIE9Z0IY+6r0mGMC0ehqdlJzvhdmS1JLmogacesDjN34ah9NGMAmmpKpfLu7YvuXdffHXxTVbUvg3J5B1eGkgj7qk53B4xNNuEcFKShcptqTgfcQ7pJb9c7qeCpYU9ewSn73R82hYOdbtKL7JcuPfjGzZ8xSHujBt5qr3xiA78uSqJ2XWHrlLsWT1qxX+RLVcnoz0+oTfYtdipOqO6Ie6cGrcmsf+5seS6nbXUEzeY23j9BudzmmUyBC6wek2Txn/XQ03Y6ETHHjz46UF9jRHnt3tMmGK6KcbJuz7LdluKczNlNbpEXQlCaKw0MDdt/8ADUD9a2sTAAA=")!;
-
-    /// <summary>
     /// Gets the standard Dalamud look.
     /// </summary>
     public static StyleModelV1 DalamudClassic => new()

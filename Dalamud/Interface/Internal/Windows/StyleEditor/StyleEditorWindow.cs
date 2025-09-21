@@ -84,7 +84,7 @@ public class StyleEditorWindow : Window
         var workStyle = config.SavedStyles[this.currentSel];
         workStyle.BuiltInColors ??= StyleModelV1.DalamudStandard.BuiltInColors;
 
-        var isBuiltinStyle = this.currentSel < 2;
+        var isBuiltinStyle = this.currentSel < 3;
         var appliedThisFrame = false;
 
         var styleAry = config.SavedStyles.Select(x => x.Name).ToArray();
